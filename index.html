@@ -12,76 +12,108 @@
 
     <style>
         * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background: #f0f2f5; }
+        body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background: #f0f2f5; overflow: hidden; }
         
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        /* --- DASHBOARD: SMALLER & RIGHT-ALIGNED --- */
+        /* --- DASHBOARD --- */
         .dashboard {
-            position: absolute; 
-            top: 20px; 
-            right: 20px; /* MOVED TO RIGHT */
-            width: 280px; /* MADE SMALLER (was 360px) */
-            background: #ffffff; 
-            padding: 15px; /* REDUCED PADDING */
-            border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            position: absolute; top: 20px; right: 20px;
+            width: 260px; background: #ffffff; padding: 15px;
+            border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            z-index: 1000; display: flex; flex-direction: column; align-items: center;
         }
 
-        /* HEADER & ANIMATION */
         .header-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-        
         .live-badge {
             width: 10px; height: 10px; background: #ef4444; border-radius: 50%;
-            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
             animation: pulse-red 2s infinite;
         }
-        
         @keyframes pulse-red {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
-
-        h2 { margin: 0; color: #0f172a; font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
-        
+        h2 { margin: 0; color: #0f172a; font-size: 18px; font-weight: 800; }
         #status-text { 
             font-size: 13px; color: #64748b; font-weight: 600; 
             background: #f1f5f9; padding: 4px 12px; border-radius: 15px; margin-top: 4px;
         }
 
-        /* --- LOCATE BUTTON --- */
         .loc-btn {
-            margin-top: 12px; width: 100%; padding: 10px;
+            margin-top: 10px; width: 100%; padding: 10px;
             background: #2563eb; color: white; border: none; border-radius: 12px;
-            font-weight: 700; font-size: 14px; cursor: pointer;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-            transition: transform 0.2s, background 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
+            font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
         }
-        .loc-btn:active { transform: scale(0.96); }
-        .loc-btn:hover { background: #1d4ed8; }
+
+        /* --- SIDEBAR MENU --- */
+        .menu-btn {
+            position: absolute; top: 20px; left: 20px;
+            background: white; border: none; padding: 12px;
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-size: 20px; cursor: pointer; z-index: 1001;
+        }
+        
+        .sidebar {
+            position: fixed; top: 0; left: -300px; width: 280px; height: 100%;
+            background: white; z-index: 2000; transition: left 0.3s ease;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.1); padding: 20px;
+            overflow-y: auto;
+        }
+        .sidebar.open { left: 0; }
+        
+        .sidebar-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;
+        }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; }
+        
+        .bus-list-item {
+            padding: 12px; margin-bottom: 8px; background: #f8fafc;
+            border-radius: 10px; cursor: pointer; transition: background 0.2s;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .bus-list-item:hover { background: #e2e8f0; }
+        .bus-name { font-weight: 600; color: #334155; font-size: 14px; }
+        .status-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; }
+        .status-dot.active { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
 
         /* --- POPUP STYLE --- */
         .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; }
         .leaflet-popup-content { margin: 0; width: 240px !important; }
-        
         .popup-header { background: #003366; color: white; padding: 12px; font-weight: 700; font-size: 15px; }
         .popup-body { padding: 15px; background: white; }
-        .info-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; color: #334155; }
-        
         .track-link {
             display: block; margin-top: 10px; text-align: center;
             background: #e2e8f0; color: #0f172a; padding: 8px; 
             border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 12px;
         }
+
+        /* --- ROTATING BUS ICON STYLE --- */
+        .bus-icon-wrapper {
+            position: relative;
+            width: 40px; height: 40px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .bus-img-top {
+            width: 22px; /* Slimmer width for "Long" look */
+            height: 48px; /* Longer height */
+            transition: transform 0.5s linear; /* Smooth rotation */
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
     </style>
 </head>
 <body>
+
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2 style="font-size: 20px;">🚍 Bus List</h2>
+            <button class="close-btn" onclick="toggleSidebar()">×</button>
+        </div>
+        <div id="bus-list-container"></div>
+    </div>
 
     <div id="map"></div>
     
@@ -91,22 +123,18 @@
             <h2>BUFT Shuttle Live</h2>
         </div>
         <div id="status-text">Connecting...</div>
-        
-        <button onclick="findUser()" class="loc-btn">
-            <span>📍</span> Locate Me
-        </button>
+        <button onclick="findUser()" class="loc-btn"><span>📍</span> Locate Me</button>
     </div>
 
     <script>
         // 1. SETUP MAP
         const map = L.map('map', {zoomControl: false}).setView([23.8741, 90.3992], 11);
-        L.control.zoom({position: 'bottomleft'}).addTo(map); // Moved zoom to bottom LEFT to avoid overlap
+        L.control.zoom({position: 'bottomright'}).addTo(map);
         
         L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
             maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3']
         }).addTo(map);
 
-        // 2. YOUR SERVER
         const SERVER = "https://bus-server-lr2x.onrender.com"; 
 
         const BUSES = [
@@ -139,26 +167,53 @@
         ];
 
         const markers = {};
+        const busAngles = {}; 
         let userMarker = null;
 
-        var busSvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="40" height="40"><path fill="%23003366" d="M488 128h-8V80c0-26.5-21.5-48-48-48H80C53.5 32 32 53.5 32 80v48h-8c-13.3 0-24 10.7-24 24v112c0 13.3 10.7 24 24 24h8v48c0 35.3 28.7 64 64 64h32c35.3 0 64-28.7 64-64v-8h128v8c0 35.3 28.7 64 64 64h32c35.3 0 64-28.7 64-64v-48h8c13.3 0 24-10.7 24-24V152c0-13.3-10.7-24-24-24z"/><path fill="white" d="M96 80h64v48H96zM192 80h64v48h-64zM288 80h64v48h-64zM384 80h48c8.8 0 16 7.2 16 16v32h-64V80zM96 432c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm320 0c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"/><text x="256" y="320" font-family="Arial, sans-serif" font-size="55" font-weight="bold" fill="white" text-anchor="middle">BUFT</text></svg>`;
-
-        var busIcon = L.icon({
-            iconUrl: busSvg,
-            iconSize: [45, 45], iconAnchor: [22, 45], popupAnchor: [0, -40]
+        // Populate Sidebar
+        const listContainer = document.getElementById('bus-list-container');
+        BUSES.forEach(bus => {
+            const item = document.createElement('div');
+            item.className = 'bus-list-item';
+            item.innerHTML = `
+                <div class="bus-name">${bus.name}</div>
+                <div class="status-dot" id="dot-${bus.id}"></div>
+            `;
+            item.onclick = () => focusBus(bus.id);
+            listContainer.appendChild(item);
         });
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function focusBus(id) {
+            if (markers[id]) {
+                const marker = markers[id];
+                map.flyTo(marker.getLatLng(), 15);
+                marker.openPopup();
+                toggleSidebar();
+            } else {
+                alert("Bus position not yet found. Please wait.");
+            }
+        }
+
+        // --- NEW: TOP-DOWN BUS ICON (The "Long" Bus) ---
+        // This is a simple rectangle with a windshield, looking from above
+        const topDownBusSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 240"><rect x="10" y="10" width="80" height="220" rx="15" fill="#003366" stroke="#ffffff" stroke-width="5"/><path d="M15 30 L85 30 L85 60 L15 60 Z" fill="#4dabf7"/><circle cx="20" cy="220" r="4" fill="#ef4444"/><circle cx="80" cy="220" r="4" fill="#ef4444"/><path d="M10 180 L90 180" stroke="#ffffff" stroke-width="2" stroke-dasharray="5,5"/></svg>`;
+        
+        const busImgSrc = "data:image/svg+xml;base64," + btoa(topDownBusSvg);
 
         var userIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34]
         });
 
         function findUser() {
             if (!navigator.geolocation) { alert("GPS not supported."); return; }
             const btn = document.querySelector('.loc-btn');
             btn.innerHTML = "📡 Locating...";
-            
             navigator.geolocation.getCurrentPosition(position => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
@@ -166,17 +221,24 @@
                 else userMarker = L.marker([lat, lng], {icon: userIcon}).addTo(map).bindPopup("<b>You</b>").openPopup();
                 map.setView([lat, lng], 15);
                 btn.innerHTML = "<span>📍</span> Locate Me";
-            }, () => { 
-                alert("Please enable location."); 
-                btn.innerHTML = "❌ Denied";
-            });
+            }, () => { alert("Enable location."); btn.innerHTML = "❌ Denied"; });
         }
+
+        // --- MATH: Calculate Bearing ---
+        function calculateBearing(lat1, lng1, lat2, lng2) {
+            const y = Math.sin(lng2 - lng1) * Math.cos(lat2);
+            const x = Math.cos(lat1) * Math.sin(lat2) -
+                    Math.sin(lat1) * Math.cos(lat2) * Math.cos(lng2 - lng1);
+            const theta = Math.atan2(y, x);
+            return (theta * 180 / Math.PI + 360) % 360; 
+        }
+
+        function toRad(deg) { return deg * Math.PI / 180; }
 
         async function fetchBus(bus) {
             try {
                 const res = await fetch(`${SERVER}/bus-api?id=${bus.id}&imei=${bus.imei}`);
                 if (!res.ok) return false;
-                
                 const raw = await res.json();
                 let data = (typeof raw === 'string') ? new Function("return " + raw)() : raw;
 
@@ -186,25 +248,61 @@
                     const lng = parseFloat(info.longitude);
                     let driver = info.driver_json ? (info.driver_json.name || "Unknown") : "Unknown";
                     let mobile = info.driver_json ? (info.driver_json.mobile_no || "--") : "--";
+                    
+                    // SMART DIRECTION
+                    let course = 0;
+                    if (markers[bus.id]) {
+                        const oldPos = markers[bus.id].getLatLng();
+                        if (oldPos.lat !== lat || oldPos.lng !== lng) {
+                            course = calculateBearing(toRad(oldPos.lat), toRad(oldPos.lng), toRad(lat), toRad(lng));
+                            busAngles[bus.id] = course;
+                        } else {
+                            course = busAngles[bus.id] || 0;
+                        }
+                    } else {
+                        course = 0; 
+                        busAngles[bus.id] = 0;
+                    }
+
                     const liveLink = `https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}`;
 
                     if (lat > 0) {
                         const popup = `
                             <div class="popup-header">🚌 ${bus.name}</div>
                             <div class="popup-body">
-                                <div class="info-row"><span>👤</span> <b>${driver}</b></div>
-                                <div class="info-row"><span>📞</span> ${mobile}</div>
-                                <div class="info-row"><span>📍</span> ${info.location || "Moving..."}</div>
-                                <div class="info-row" style="color:#22c55e; font-weight:bold;"><span>🚀</span> ${info.speed} km/h</div>
+                                <div style="margin-bottom:5px">👤 <b>${driver}</b></div>
+                                <div style="margin-bottom:5px">📞 ${mobile}</div>
+                                <div style="margin-bottom:5px">📍 ${info.location || "Moving..."}</div>
+                                <div style="color:#22c55e; font-weight:bold;">🚀 ${info.speed} km/h</div>
                                 <a href="${liveLink}" target="_blank" class="track-link">🔗 Open Full Tracker</a>
                             </div>
                         `;
 
+                        // THE ROTATING BUS ICON (No more arrow!)
+                        // We apply rotation DIRECTLY to the bus image
+                        const customIcon = L.divIcon({
+                            className: 'custom-bus-icon',
+                            html: `
+                                <div class="bus-icon-wrapper">
+                                    <img src="${busImgSrc}" class="bus-img-top" id="img-${bus.id}" style="transform: rotate(${course}deg);">
+                                </div>
+                            `,
+                            iconSize: [40, 40],
+                            iconAnchor: [20, 20],
+                            popupAnchor: [0, -20]
+                        });
+
                         if (markers[bus.id]) {
                             markers[bus.id].setLatLng([lat, lng]).setPopupContent(popup);
+                            const img = document.getElementById(`img-${bus.id}`);
+                            if(img) img.style.transform = `rotate(${course}deg)`;
                         } else {
-                            markers[bus.id] = L.marker([lat, lng], {icon: busIcon}).addTo(map).bindPopup(popup);
+                            markers[bus.id] = L.marker([lat, lng], {icon: customIcon}).addTo(map).bindPopup(popup);
                         }
+                        
+                        const dot = document.getElementById(`dot-${bus.id}`);
+                        if(dot) dot.classList.add('active');
+                        
                         return true;
                     }
                 }
@@ -213,14 +311,14 @@
         }
 
         async function updateFleet() {
-            document.getElementById('status-text').innerText = "📡 Scanning Network...";
+            document.getElementById('status-text').innerText = "📡 Scanning...";
             let count = 0;
             const BATCH_SIZE = 5; 
             for (let i = 0; i < BUSES.length; i += BATCH_SIZE) {
                 const batch = BUSES.slice(i, i + BATCH_SIZE);
                 const results = await Promise.all(batch.map(bus => fetchBus(bus)));
                 count += results.filter(r => r).length;
-                if(count > 0) document.getElementById('status-text').innerText = `✅ Active Fleet: ${count} Buses`;
+                if(count > 0) document.getElementById('status-text').innerText = `✅ Active: ${count} Buses`;
             }
             setTimeout(updateFleet, 10000); 
         }
