@@ -12,7 +12,6 @@
         body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
         #map { height: 100vh; width: 100%; }
         
-        /* Dashboard Card */
         .dashboard {
             position: absolute; top: 20px; right: 20px; width: 240px;
             background: rgba(255, 255, 255, 0.95); padding: 15px;
@@ -21,12 +20,10 @@
             backdrop-filter: blur(5px);
         }
         
-        /* Popup Styling */
         .popup-card { min-width: 230px; font-family: 'Segoe UI', sans-serif; }
         .popup-header { 
             background: #003366; color: white; padding: 10px; 
             border-radius: 8px 8px 0 0; font-weight: bold; font-size: 15px;
-            display: flex; align-items: center;
         }
         .popup-body { 
             padding: 12px; border: 1px solid #eee; border-top: none; 
@@ -35,14 +32,11 @@
         .info-row { margin-bottom: 8px; font-size: 13px; color: #444; display: flex; align-items: center; }
         .icon-space { width: 24px; text-align: center; margin-right: 8px; font-size: 16px; }
         
-        /* The New Link Button */
         .track-btn {
             display: block; margin-top: 10px; padding: 8px; 
             background: #28a745; color: white; text-align: center; 
             text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px;
-            transition: background 0.2s;
         }
-        .track-btn:hover { background: #218838; }
     </style>
 </head>
 <body>
@@ -51,7 +45,7 @@
     
     <div class="dashboard">
         <h2 style="margin:0; color:#003366; font-size:18px;">🎓 BUFT Tracker</h2>
-        <div id="status-text" style="font-size:13px; color:#555; margin-top:5px;">Connecting...</div>
+        <div id="status-text" style="font-size:13px; color:#555; margin-top:5px;">Connecting to Server...</div>
     </div>
 
     <script>
@@ -61,10 +55,9 @@
             maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3']
         }).addTo(map);
 
-        // 2. YOUR REPLIT URL
-        const SERVER = "https://d41821e5-ff23-4737-bae8-637238ba9a4b-00-2gv97nshrezpo.pike.replit.dev";
+        // 2. YOUR PERMANENT RENDER SERVER
+        const SERVER = "https://bus-server-lr2x.onrender.com"; 
 
-        // 3. BUS LIST
         const BUSES = [
             { name: "Bus 1: Islampur", id: "344928", imei: "863051061903687" },
             { name: "Bus 2: Shia Masjid", id: "344929", imei: "863051061866041" },
@@ -95,8 +88,6 @@
         ];
 
         const markers = {};
-
-        // Custom Icon from Tampermonkey
         var busSvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="40" height="40"><path fill="%23003366" d="M488 128h-8V80c0-26.5-21.5-48-48-48H80C53.5 32 32 53.5 32 80v48h-8c-13.3 0-24 10.7-24 24v112c0 13.3 10.7 24 24 24h8v48c0 35.3 28.7 64 64 64h32c35.3 0 64-28.7 64-64v-8h128v8c0 35.3 28.7 64 64 64h32c35.3 0 64-28.7 64-64v-48h8c13.3 0 24-10.7 24-24V152c0-13.3-10.7-24-24-24z"/><path fill="white" d="M96 80h64v48H96zM192 80h64v48h-64zM288 80h64v48h-64zM384 80h48c8.8 0 16 7.2 16 16v32h-64V80zM96 432c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm320 0c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"/><text x="256" y="320" font-family="Arial, sans-serif" font-size="55" font-weight="bold" fill="white" text-anchor="middle">BUFT</text></svg>`;
 
         var busIcon = L.icon({
@@ -114,8 +105,6 @@
                     const info = data.root[0][0];
                     const lat = parseFloat(info.latitude);
                     const lng = parseFloat(info.longitude);
-                    
-                    // Driver Info
                     let driver = "Unknown";
                     let mobile = "N/A";
                     if (info.driver_json) {
@@ -123,35 +112,20 @@
                         mobile = info.driver_json.mobile_no || "N/A";
                     }
 
-                    // --- GENERATE INDIVIDUAL LINK ---
-                    // Formula: Base64( ID + "&Bus&EN" )
                     const rawString = bus.id + "&Bus&EN";
-                    const encodedParam = btoa(rawString); // This creates the 'MzQ...' code
+                    const encodedParam = btoa(rawString);
                     const liveLink = `https://app.bongoiot.com/jsp/quickview.jsp?param=${encodedParam}`;
 
                     if (lat > 0) {
                         const popup = `
                             <div class="popup-card">
-                                <div class="popup-header">
-                                    <span style="margin-right:8px;">🚌</span> ${bus.name}
-                                </div>
+                                <div class="popup-header">🚌 ${bus.name}</div>
                                 <div class="popup-body">
-                                    <div class="info-row">
-                                        <span class="icon-space">👮</span> <b>${driver}</b>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="icon-space">📞</span> ${mobile}
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="icon-space">📍</span> ${info.location || "Moving..."}
-                                    </div>
-                                    <div class="info-row" style="color:#28a745; font-weight:bold;">
-                                        <span class="icon-space">🚀</span> ${info.speed} km/h
-                                    </div>
-
-                                    <a href="${liveLink}" target="_blank" class="track-btn">
-                                        🔗 Open Live Tracker
-                                    </a>
+                                    <div class="info-row"><span class="icon-space">👮</span> <b>${driver}</b></div>
+                                    <div class="info-row"><span class="icon-space">📞</span> ${mobile}</div>
+                                    <div class="info-row"><span class="icon-space">📍</span> ${info.location || "Moving..."}</div>
+                                    <div class="info-row" style="color:#28a745; font-weight:bold;"><span class="icon-space">🚀</span> ${info.speed} km/h</div>
+                                    <a href="${liveLink}" target="_blank" class="track-btn">🔗 Open Live Tracker</a>
                                 </div>
                             </div>
                         `;
@@ -171,9 +145,9 @@
         async function updateFleet() {
             document.getElementById('status-text').innerText = "🔄 Updating...";
             let count = 0;
-            // Load carefully to prevent server block
+            // Load 3 buses at a time to be faster but safe
             for (let i = 0; i < BUSES.length; i++) {
-                await new Promise(r => setTimeout(r, 200)); 
+                await new Promise(r => setTimeout(r, 100)); 
                 const success = await fetchBus(BUSES[i]);
                 if (success) count++;
                 document.getElementById('status-text').innerText = `✅ Found: ${count} Buses`;
@@ -181,8 +155,7 @@
         }
 
         updateFleet();
-        setInterval(updateFleet, 25000);
-
+        setInterval(updateFleet, 20000);
     </script>
 </body>
 </html>
