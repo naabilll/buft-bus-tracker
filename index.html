@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 
     <style>
+        * { box-sizing: border-box; }
         body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
         #map { height: 100vh; width: 100%; }
         
@@ -20,7 +21,7 @@
             backdrop-filter: blur(5px);
         }
         
-        .popup-card { min-width: 230px; font-family: 'Segoe UI', sans-serif; }
+        .popup-card { min-width: 230px; }
         .popup-header { 
             background: #003366; color: white; padding: 10px; 
             border-radius: 8px 8px 0 0; font-weight: bold; font-size: 15px;
@@ -37,6 +38,15 @@
             background: #28a745; color: white; text-align: center; 
             text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px;
         }
+        
+        .loc-btn {
+            width: 100%; padding: 10px; margin-top: 12px;
+            background: #007bff; color: white; border: none;
+            border-radius: 6px; font-weight: bold; cursor: pointer;
+            font-size: 13px; transition: background 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .loc-btn:hover { background: #0056b3; }
     </style>
 </head>
 <body>
@@ -44,18 +54,18 @@
     <div id="map"></div>
     
     <div class="dashboard">
-        <h2 style="margin:0; color:#003366; font-size:18px;">🎓 BUFT Tracker</h2>
-        <div id="status-text" style="font-size:13px; color:#555; margin-top:5px;">Connecting to Server...</div>
+        <h2 style="margin:0; color:#003366; font-size:18px;">🎓 BUFT Bus Tracker</h2>
+        <div id="status-text" style="font-size:13px; color:#555; margin-top:8px;">Connecting...</div>
+        <button onclick="findUser()" class="loc-btn"><span>📍</span> Find Me</button>
     </div>
 
     <script>
-        // 1. Initialize Map
         const map = L.map('map').setView([23.8741, 90.3992], 11);
         L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
             maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3']
         }).addTo(map);
 
-        // 2. YOUR PERMANENT RENDER SERVER
+        // YOUR SERVER
         const SERVER = "https://bus-server-lr2x.onrender.com"; 
 
         const BUSES = [
@@ -88,6 +98,8 @@
         ];
 
         const markers = {};
+        let userMarker = null;
+
         var busSvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="40" height="40"><path fill="%23003366" d="M488 128h-8V80c0-26.5-21.5-48-48-48H80C53.5 32 32 53.5 32 80v48h-8c-13.3 0-24 10.7-24 24v112c0 13.3 10.7 24 24 24h8v48c0 35.3 28.7 64 64 64h32c35.3 0 64-28.7 64-64v-8h128v8c0 35.3 28.7 64 64 64h32c35.3 0 64-28.7 64-64v-48h8c13.3 0 24-10.7 24-24V152c0-13.3-10.7-24-24-24z"/><path fill="white" d="M96 80h64v48H96zM192 80h64v48h-64zM288 80h64v48h-64zM384 80h48c8.8 0 16 7.2 16 16v32h-64V80zM96 432c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm320 0c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"/><text x="256" y="320" font-family="Arial, sans-serif" font-size="55" font-weight="bold" fill="white" text-anchor="middle">BUFT</text></svg>`;
 
         var busIcon = L.icon({
@@ -95,10 +107,36 @@
             iconSize: [45, 45], iconAnchor: [22, 45], popupAnchor: [0, -40]
         });
 
+        var userIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+        });
+
+        function findUser() {
+            if (!navigator.geolocation) {
+                alert("GPS not supported."); return;
+            }
+            document.getElementById('status-text').innerText = "📍 Locating you...";
+            navigator.geolocation.getCurrentPosition(position => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                if (userMarker) userMarker.setLatLng([lat, lng]);
+                else userMarker = L.marker([lat, lng], {icon: userIcon}).addTo(map).bindPopup("<b>You are here</b>").openPopup();
+                map.setView([lat, lng], 15);
+                document.getElementById('status-text').innerText = "✅ Location Found";
+            }, () => { alert("Please enable Location Access."); document.getElementById('status-text').innerText = "❌ GPS Denied"; });
+        }
+
         async function fetchBus(bus) {
             try {
+                // Fetch with error handling
                 const res = await fetch(`${SERVER}/bus-api?id=${bus.id}&imei=${bus.imei}`);
+                if (!res.ok) throw new Error(`Server Error ${res.status}`);
+                
                 const raw = await res.json();
+                if (raw.error) throw new Error(raw.error);
+
                 let data = (typeof raw === 'string') ? new Function("return " + raw)() : raw;
 
                 if (data && data.root && data.root[0] && data.root[0][0]) {
@@ -138,24 +176,32 @@
                         return true;
                     }
                 }
-            } catch (e) { console.error(bus.name + " error"); }
+            } catch (e) { 
+                console.error(bus.name + " error: " + e.message);
+                // Only show error on dashboard if it's the first bus (to avoid spamming)
+                if(bus.id === "344928") document.getElementById('status-text').innerText = "⚠️ " + e.message;
+            }
             return false;
         }
 
         async function updateFleet() {
             document.getElementById('status-text').innerText = "🔄 Updating...";
             let count = 0;
-            // Load 3 buses at a time to be faster but safe
-            for (let i = 0; i < BUSES.length; i++) {
-                await new Promise(r => setTimeout(r, 100)); 
-                const success = await fetchBus(BUSES[i]);
-                if (success) count++;
-                document.getElementById('status-text').innerText = `✅ Found: ${count} Buses`;
+            
+            // --- STABLE MODE (5 Buses at a time) ---
+            const BATCH_SIZE = 5; 
+            for (let i = 0; i < BUSES.length; i += BATCH_SIZE) {
+                const batch = BUSES.slice(i, i + BATCH_SIZE);
+                const results = await Promise.all(batch.map(bus => fetchBus(bus)));
+                count += results.filter(r => r).length;
+                if(count > 0) document.getElementById('status-text').innerText = `✅ Found: ${count} Buses`;
             }
+            
+            // Loop every 10 seconds (Balanced Speed)
+            setTimeout(updateFleet, 10000);
         }
 
         updateFleet();
-        setInterval(updateFleet, 20000);
     </script>
 </body>
 </html>
