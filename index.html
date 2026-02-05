@@ -77,10 +77,18 @@
         }
         .bus-list-item:hover { background: #e2e8f0; }
         .bus-name { font-weight: 600; color: #334155; font-size: 14px; }
+        
+        /* MINI LINK STYLE */
+        .mini-link {
+            font-size: 11px; color: #3b82f6; text-decoration: none; 
+            font-weight: 600; display: inline-block; margin-top: 2px;
+        }
+        .mini-link:hover { text-decoration: underline; }
+
         .status-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; }
         .status-dot.active { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
 
-        /* --- ABOUT & VISITOR STYLES --- */
+        /* --- ABOUT & VISITOR --- */
         .about-toggle-btn {
             margin-top: 15px; background: #f8fafc; color: #334155; 
             font-weight: 600; font-size: 14px; border: 1px solid #e2e8f0;
@@ -98,6 +106,33 @@
         }
         .visitor-text {
             font-size: 11px; color: #94a3b8; margin-top: 5px; font-weight: 600;
+        }
+
+        /* --- NOTICES (SIDEBAR & FLOATING) --- */
+        #night-notice-sidebar {
+            display: none; /* Hidden by default */
+            background: #fee2e2; border: 1px solid #fecaca; color: #991b1b;
+            padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+            margin-bottom: 15px; text-align: center;
+        }
+
+        /* FLOATING NOTICE STYLE */
+        .floating-notice {
+            display: none; /* Hidden by default */
+            position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
+            background: rgba(254, 226, 226, 0.95); /* Light Red with opacity */
+            border: 2px solid #ef4444; color: #991b1b;
+            padding: 12px 25px; border-radius: 50px;
+            font-weight: 700; font-size: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 3000; /* Above everything */
+            text-align: center;
+            animation: slide-down 0.5s ease-out;
+            white-space: nowrap;
+        }
+        @keyframes slide-down {
+            from { top: -50px; opacity: 0; }
+            to { top: 100px; opacity: 1; }
         }
 
         /* --- POPUP STYLE --- */
@@ -126,6 +161,10 @@
 </head>
 <body>
 
+    <div id="floating-night-notice" class="floating-notice">
+        🌙 Server Offline (9 PM - 5 AM)
+    </div>
+
     <button class="menu-btn" onclick="toggleSidebar()">☰</button>
 
     <div class="sidebar" id="sidebar">
@@ -133,6 +172,12 @@
             <h2 style="font-size: 20px;">🚍 Bus List</h2>
             <button class="close-btn" onclick="toggleSidebar()">×</button>
         </div>
+        
+        <div id="night-notice-sidebar">
+            🌙 <b>Server Offline</b><br>
+            Updates paused from 9:00 PM to 5:00 AM.
+        </div>
+
         <div id="bus-list-container"></div>
         
         <div class="bus-list-item" style="margin-top: 15px; background: #e0f2fe; border: 1px solid #bae6fd;" 
@@ -227,8 +272,15 @@
         BUSES.forEach(bus => {
             const item = document.createElement('div');
             item.className = 'bus-list-item';
+            
+            // Direct Tracking Link
+            const liveLink = `https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}`;
+
             item.innerHTML = `
-                <div class="bus-name">${bus.name}</div>
+                <div style="flex-grow:1;">
+                    <div class="bus-name">${bus.name}</div>
+                    <a href="${liveLink}" target="_blank" class="mini-link" onclick="event.stopPropagation()">🔗 Track</a>
+                </div>
                 <div class="status-dot" id="dot-${bus.id}"></div>
             `;
             item.onclick = () => focusBus(bus.id);
@@ -259,7 +311,7 @@
             }
         }
 
-        // --- NEW: TOP-DOWN BUS ICON ---
+        // --- TOP-DOWN BUS ICON ---
         const topDownBusSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 240"><rect x="10" y="10" width="80" height="220" rx="15" fill="#003366" stroke="#ffffff" stroke-width="5"/><path d="M15 30 L85 30 L85 60 L15 60 Z" fill="#4dabf7"/><circle cx="20" cy="220" r="4" fill="#ef4444"/><circle cx="80" cy="220" r="4" fill="#ef4444"/><path d="M10 180 L90 180" stroke="#ffffff" stroke-width="2" stroke-dasharray="5,5"/></svg>`;
         const busImgSrc = "data:image/svg+xml;base64," + btoa(topDownBusSvg);
 
@@ -391,9 +443,7 @@
             setTimeout(updateFleet, 10000); 
         }
 
-        // --- VISITOR COUNTER LOGIC (UPDATED LOCATION) ---
         function updateVisitorCount() {
-            // Using a unique namespace for your project
             fetch("https://api.counterapi.dev/v1/buft-tracker-nabil/view/up")
                 .then(res => res.json())
                 .then(data => {
@@ -403,9 +453,23 @@
                 .catch(e => console.log("Counter Error:", e));
         }
 
+        // --- CHECK SERVER HOURS (9 PM - 5 AM) ---
+        function checkServerHours() {
+            const now = new Date();
+            const hour = now.getHours(); // 0 to 23
+
+            // If time is 21:00 (9PM) or later, OR before 05:00 (5AM)
+            if (hour >= 21 || hour < 5) {
+                // Show Sidebar Notice
+                document.getElementById('night-notice-sidebar').style.display = 'block';
+                // Show Floating Main Page Notice
+                document.getElementById('floating-night-notice').style.display = 'block';
+            }
+        }
+
+        checkServerHours();
         updateFleet();
         updateVisitorCount();
     </script>
 </body>
 </html>
-
