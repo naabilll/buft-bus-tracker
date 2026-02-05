@@ -16,7 +16,7 @@
         
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        /* --- DASHBOARD --- */
+        /* --- DASHBOARD (Top Right) --- */
         .dashboard {
             position: absolute; top: 20px; right: 20px;
             width: 260px; background: #ffffff; padding: 15px;
@@ -58,7 +58,10 @@
         
         .sidebar {
             position: fixed; top: 0; left: -320px; width: 300px; height: 100%;
-            background: white; z-index: 2000; transition: left 0.3s ease;
+            background: white; 
+            /* Z-Index 9999 ensures it covers EVERYTHING, including the notice */
+            z-index: 9999; 
+            transition: left 0.3s ease;
             box-shadow: 5px 0 25px rgba(0,0,0,0.1); padding: 20px;
             overflow-y: auto;
         }
@@ -70,22 +73,27 @@
         }
         .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; }
         
+        /* BUS ITEM LAYOUT */
         .bus-list-item {
             padding: 12px; margin-bottom: 8px; background: #f8fafc;
             border-radius: 10px; cursor: pointer; transition: background 0.2s;
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex; align-items: center; 
+            /* This ensures items are spaced out nicely */
+            gap: 10px; 
         }
         .bus-list-item:hover { background: #e2e8f0; }
-        .bus-name { font-weight: 600; color: #334155; font-size: 14px; }
+        
+        /* Flex grow pushes the name to take available space */
+        .bus-name { font-weight: 600; color: #334155; font-size: 14px; flex-grow: 1; }
         
         /* MINI LINK STYLE */
         .mini-link {
             font-size: 11px; color: #3b82f6; text-decoration: none; 
-            font-weight: 600; display: inline-block; margin-top: 2px;
+            font-weight: 600; white-space: nowrap;
         }
         .mini-link:hover { text-decoration: underline; }
 
-        .status-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; }
+        .status-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; flex-shrink: 0; }
         .status-dot.active { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
 
         /* --- ABOUT & VISITOR --- */
@@ -108,31 +116,35 @@
             font-size: 11px; color: #94a3b8; margin-top: 5px; font-weight: 600;
         }
 
-        /* --- NOTICES (SIDEBAR & FLOATING) --- */
+        /* --- NOTICES --- */
         #night-notice-sidebar {
-            display: none; /* Hidden by default */
+            display: none; 
             background: #fee2e2; border: 1px solid #fecaca; color: #991b1b;
             padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
             margin-bottom: 15px; text-align: center;
         }
 
-        /* FLOATING NOTICE STYLE */
+        /* FLOATING NOTICE STYLE (MOVED TO BOTTOM) */
         .floating-notice {
-            display: none; /* Hidden by default */
-            position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
-            background: rgba(254, 226, 226, 0.95); /* Light Red with opacity */
+            display: none; 
+            position: absolute; 
+            /* Moved to bottom to avoid covering the dashboard */
+            bottom: 40px; 
+            left: 50%; transform: translateX(-50%);
+            background: rgba(254, 226, 226, 0.95); 
             border: 2px solid #ef4444; color: #991b1b;
             padding: 12px 25px; border-radius: 50px;
             font-weight: 700; font-size: 14px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            z-index: 3000; /* Above everything */
+            /* Z-Index lower than sidebar (9999) but higher than map (1) */
+            z-index: 5000; 
             text-align: center;
-            animation: slide-down 0.5s ease-out;
+            animation: slide-up 0.5s ease-out;
             white-space: nowrap;
         }
-        @keyframes slide-down {
-            from { top: -50px; opacity: 0; }
-            to { top: 100px; opacity: 1; }
+        @keyframes slide-up {
+            from { bottom: -50px; opacity: 0; }
+            to { bottom: 40px; opacity: 1; }
         }
 
         /* --- POPUP STYLE --- */
@@ -162,7 +174,8 @@
 <body>
 
     <div id="floating-night-notice" class="floating-notice">
-        🌙 Server Offline (9 PM - 5 AM)
+        🌙 Service Paused (Night)<br>
+        <span style="font-size:11px; font-weight:500;">Resumes at 5:00 AM Morning</span>
     </div>
 
     <button class="menu-btn" onclick="toggleSidebar()">☰</button>
@@ -174,8 +187,8 @@
         </div>
         
         <div id="night-notice-sidebar">
-            🌙 <b>Server Offline</b><br>
-            Updates paused from 9:00 PM to 5:00 AM.
+            🌙 <b>Service Paused</b><br>
+            Server is offline from 9 PM to 5 AM.
         </div>
 
         <div id="bus-list-container"></div>
@@ -276,11 +289,10 @@
             // Direct Tracking Link
             const liveLink = `https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}`;
 
+            // UPDATED LAYOUT: Name -> Track Link -> Dot
             item.innerHTML = `
-                <div style="flex-grow:1;">
-                    <div class="bus-name">${bus.name}</div>
-                    <a href="${liveLink}" target="_blank" class="mini-link" onclick="event.stopPropagation()">🔗 Track</a>
-                </div>
+                <div class="bus-name">${bus.name}</div>
+                <a href="${liveLink}" target="_blank" class="mini-link" onclick="event.stopPropagation()">🔗 Track</a>
                 <div class="status-dot" id="dot-${bus.id}"></div>
             `;
             item.onclick = () => focusBus(bus.id);
