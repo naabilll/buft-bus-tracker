@@ -21,7 +21,9 @@
             position: absolute; top: 20px; right: 20px;
             width: 260px; background: #ffffff; padding: 15px;
             border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            z-index: 1000; display: flex; flex-direction: column; align-items: center;
+            /* Z-Index 1000: Above map, but below Sidebar */
+            z-index: 1000; 
+            display: flex; flex-direction: column; align-items: center;
         }
 
         .header-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
@@ -53,13 +55,14 @@
             position: absolute; top: 20px; left: 20px;
             background: white; border: none; padding: 12px;
             border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            font-size: 20px; cursor: pointer; z-index: 1001;
+            font-size: 20px; cursor: pointer; 
+            z-index: 1001; /* Above Dashboard */
         }
         
         .sidebar {
             position: fixed; top: 0; left: -320px; width: 300px; height: 100%;
             background: white; 
-            /* Z-Index 9999 ensures it covers EVERYTHING, including the notice */
+            /* Z-Index 9999: THE HIGHEST LAYER. Covers everything else. */
             z-index: 9999; 
             transition: left 0.3s ease;
             box-shadow: 5px 0 25px rgba(0,0,0,0.1); padding: 20px;
@@ -73,27 +76,28 @@
         }
         .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; }
         
-        /* BUS ITEM LAYOUT */
+        /* BUS LIST ITEM LAYOUT */
         .bus-list-item {
             padding: 12px; margin-bottom: 8px; background: #f8fafc;
             border-radius: 10px; cursor: pointer; transition: background 0.2s;
-            display: flex; align-items: center; 
-            /* This ensures items are spaced out nicely */
-            gap: 10px; 
+            display: flex; align-items: center; justify-content: space-between;
         }
         .bus-list-item:hover { background: #e2e8f0; }
         
-        /* Flex grow pushes the name to take available space */
-        .bus-name { font-weight: 600; color: #334155; font-size: 14px; flex-grow: 1; }
+        .bus-name { font-weight: 600; color: #334155; font-size: 14px; }
         
-        /* MINI LINK STYLE */
+        /* TRACK LINK & DOT CONTAINER */
+        .right-group {
+            display: flex; align-items: center; gap: 8px; /* Space between Link and Dot */
+        }
+
         .mini-link {
             font-size: 11px; color: #3b82f6; text-decoration: none; 
-            font-weight: 600; white-space: nowrap;
+            font-weight: 700;
         }
         .mini-link:hover { text-decoration: underline; }
 
-        .status-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; flex-shrink: 0; }
+        .status-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; }
         .status-dot.active { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
 
         /* --- ABOUT & VISITOR --- */
@@ -124,27 +128,29 @@
             margin-bottom: 15px; text-align: center;
         }
 
-        /* FLOATING NOTICE STYLE (MOVED TO BOTTOM) */
+        /* FLOATING NOTICE (MOVED TO BOTTOM CENTER) */
         .floating-notice {
             display: none; 
             position: absolute; 
-            /* Moved to bottom to avoid covering the dashboard */
-            bottom: 40px; 
+            /* Fixed to Bottom so it never covers Top Dashboard */
+            bottom: 30px; 
             left: 50%; transform: translateX(-50%);
+            
             background: rgba(254, 226, 226, 0.95); 
             border: 2px solid #ef4444; color: #991b1b;
-            padding: 12px 25px; border-radius: 50px;
-            font-weight: 700; font-size: 14px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            /* Z-Index lower than sidebar (9999) but higher than map (1) */
-            z-index: 5000; 
-            text-align: center;
-            animation: slide-up 0.5s ease-out;
-            white-space: nowrap;
+            padding: 12px 20px; border-radius: 50px;
+            font-weight: 700; font-size: 13px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            
+            /* Z-Index 2000: Above map, but BELOW Sidebar (9999) */
+            z-index: 2000; 
+            
+            text-align: center; white-space: nowrap;
+            animation: pop-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        @keyframes slide-up {
-            from { bottom: -50px; opacity: 0; }
-            to { bottom: 40px; opacity: 1; }
+        @keyframes pop-up {
+            from { transform: translateX(-50%) scale(0.8); opacity: 0; }
+            to { transform: translateX(-50%) scale(1); opacity: 1; }
         }
 
         /* --- POPUP STYLE --- */
@@ -174,8 +180,7 @@
 <body>
 
     <div id="floating-night-notice" class="floating-notice">
-        🌙 Service Paused (Night)<br>
-        <span style="font-size:11px; font-weight:500;">Resumes at 5:00 AM Morning</span>
+        🌙 Service Paused (Night) - Resumes 5:00 AM Morning
     </div>
 
     <button class="menu-btn" onclick="toggleSidebar()">☰</button>
@@ -289,11 +294,13 @@
             // Direct Tracking Link
             const liveLink = `https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}`;
 
-            // UPDATED LAYOUT: Name -> Track Link -> Dot
+            // Updated Layout: Name ... Link + Dot
             item.innerHTML = `
                 <div class="bus-name">${bus.name}</div>
-                <a href="${liveLink}" target="_blank" class="mini-link" onclick="event.stopPropagation()">🔗 Track</a>
-                <div class="status-dot" id="dot-${bus.id}"></div>
+                <div class="right-group">
+                    <a href="${liveLink}" target="_blank" class="mini-link" onclick="event.stopPropagation()">🔗 Track</a>
+                    <div class="status-dot" id="dot-${bus.id}"></div>
+                </div>
             `;
             item.onclick = () => focusBus(bus.id);
             listContainer.appendChild(item);
