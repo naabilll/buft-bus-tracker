@@ -80,19 +80,25 @@
         .status-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; }
         .status-dot.active { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
 
-        /* --- ABOUT SECTION (Hidden by default) --- */
+        /* --- ABOUT & VISITOR STYLES --- */
         .about-toggle-btn {
             margin-top: 15px; background: #f8fafc; color: #334155; 
             font-weight: 600; font-size: 14px; border: 1px solid #e2e8f0;
         }
         .about-content {
-            display: none; /* Hidden initially */
-            margin-top: 10px; padding: 12px; background: #f1f5f9; border-radius: 8px;
-            font-size: 12px; color: #475569; line-height: 1.4;
+            display: none; 
+            margin-top: 10px; padding: 15px; background: #f1f5f9; border-radius: 8px;
+            font-size: 13px; color: #475569; line-height: 1.6;
         }
-        .about-title { font-weight: 700; color: #0f172a; margin-bottom: 5px; }
-        .about-limit { margin-top: 8px; font-weight: 600; color: #ef4444; }
-        .about-credits { margin-top: 10px; font-size: 11px; color: #64748b; font-weight: 500; border-top: 1px solid #cbd5e1; padding-top: 6px;}
+        .about-title { font-weight: 700; color: #0f172a; margin-bottom: 8px; font-size: 15px; }
+        .about-limit { margin-top: 12px; font-weight: 600; color: #ef4444; font-size: 13px; }
+        .about-credits { 
+            margin-top: 15px; font-size: 12px; color: #64748b; font-weight: 500; 
+            border-top: 1px solid #cbd5e1; padding-top: 10px;
+        }
+        .visitor-text {
+            font-size: 11px; color: #94a3b8; margin-top: 5px; font-weight: 600;
+        }
 
         /* --- POPUP STYLE --- */
         .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; }
@@ -140,17 +146,24 @@
 
         <div id="about-box" class="about-content">
             <div class="about-title">BUFT Unified Bus Tracker</div>
-            A student-led initiative to simplify daily commutes with real-time tracking, replacing manual systems with tech-driven solutions.
+            <p style="margin: 0 0 10px 0;">
+                The BUFT Unified Bus Tracker is a comprehensive, student-led platform designed to modernize university transportation. 
+                By aggregating real-time GPS data, we aim to replace manual inquiries with a digital solution that enhances safety 
+                and convenience for the entire campus community.
+            </p>
             
-            <div class="about-limit">⚠️ Limitations:</div>
-            <ul style="padding-left: 15px; margin: 4px 0;">
-                <li>~1 min delay on startup (Server wake-up).</li>
-                <li>Occasional lag due to free-tier limits.</li>
-                <li>Direction/Heading may vary.</li>
+            <div class="about-limit">⚠️ System Limitations:</div>
+            <ul style="padding-left: 15px; margin: 5px 0; font-size: 12px;">
+                <li><b>Startup:</b> ~1 min delay if server is sleeping.</li>
+                <li><b>Quota:</b> Occasional lags due to free-tier hosting.</li>
+                <li><b>Heading:</b> Bus direction arrows are approximate.</li>
             </ul>
 
             <div class="about-credits">
-                Dev: <b>Shazzad Hossain Nabil (TE 221)</b> & Gemini
+                Lead Developer: <b>Shazzad Hossain Nabil (TE 221)</b> <br>
+                Assisted by: <b>Google Gemini AI</b>
+                
+                <div id="visitor-count" class="visitor-text">Total Visitors: ...</div>
             </div>
         </div>
     </div>
@@ -357,7 +370,6 @@
             statusEl.innerText = "📡 Scanning Network...";
             statusEl.style.color = "#64748b";
 
-            // If scanning takes > 6 seconds, warn user about sleep mode
             const wakeUpTimer = setTimeout(() => {
                 if (statusEl.innerText.includes("Scanning")) {
                     statusEl.innerText = "💤 Waking up Server... (Wait ~1 min)";
@@ -372,7 +384,7 @@
                 const results = await Promise.all(batch.map(bus => fetchBus(bus)));
                 count += results.filter(r => r).length;
                 if(count > 0) {
-                    clearTimeout(wakeUpTimer); // Cancel warning if found
+                    clearTimeout(wakeUpTimer);
                     statusEl.innerText = `✅ Active: ${count} Buses`;
                     statusEl.style.color = "#059669"; // Green
                 }
@@ -380,7 +392,20 @@
             setTimeout(updateFleet, 10000); 
         }
 
+        // --- VISITOR COUNTER LOGIC (UPDATED LOCATION) ---
+        function updateVisitorCount() {
+            // Using a unique namespace for your project
+            fetch("https://api.counterapi.dev/v1/buft-tracker-nabil/view/up")
+                .then(res => res.json())
+                .then(data => {
+                    const el = document.getElementById('visitor-count');
+                    if(el) el.innerText = `Total Visitors: ${data.count}`;
+                })
+                .catch(e => console.log("Counter Error:", e));
+        }
+
         updateFleet();
+        updateVisitorCount();
     </script>
 </body>
 </html>
