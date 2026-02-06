@@ -359,10 +359,12 @@
                     statusEl.style.color = "#059669"; 
                 }
             }
+            
+            setTimeout(updateFleet, 10000); 
+        }
 
-            // --- STRICT TIME CHECK LOGIC ---
-            // If it is 9:30 PM (21:30) or later, OR before 5:00 AM, SHOW NOTICE
-            // We ignore "totalActive" because the server is definitely off.
+        // --- INSTANT NIGHT CHECK (Separate from scanning) ---
+        function checkServerHours() {
             const now = new Date();
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
             const startNight = 21 * 60 + 30; // 9:30 PM = 1290 minutes
@@ -375,9 +377,11 @@
                 document.getElementById('floating-night-notice').style.display = 'none';
                 document.getElementById('night-notice-sidebar').style.display = 'none';
             }
-            
-            setTimeout(updateFleet, 10000); 
         }
+
+        // Run immediately on load, then every minute
+        checkServerHours();
+        setInterval(checkServerHours, 60000);
 
         function updateVisitorCount() {
             fetch("https://api.counterapi.dev/v1/buft-tracker-nabil/view/up")
