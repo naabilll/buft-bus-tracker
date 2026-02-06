@@ -126,7 +126,7 @@
         
         <div id="night-notice-sidebar">
             🌙 <b>Service Paused</b><br>
-            Server is offline from 9 PM to 5 AM.
+            Server is offline from 9:30 PM to 5 AM.
         </div>
 
         <div id="bus-list-container"></div>
@@ -353,26 +353,29 @@
                 const results = await Promise.all(batch.map(bus => fetchBus(bus)));
                 totalActive += results.filter(r => r).length;
 
-                // --- SMART NIGHT MODE LOGIC ---
-                // 1. If we found buses, HIDE the notice (even if it's night)
                 if (totalActive > 0) {
                     clearTimeout(wakeUpTimer);
                     statusEl.innerText = `✅ Active: ${totalActive} Buses`;
                     statusEl.style.color = "#059669"; 
-                    
-                    document.getElementById('floating-night-notice').style.display = 'none';
-                    document.getElementById('night-notice-sidebar').style.display = 'none';
                 }
             }
-            
-            // 2. If NO buses found AND it is Night Time -> SHOW Notice
+
+            // --- STRICT TIME CHECK LOGIC ---
+            // If it is 9:30 PM (21:30) or later, OR before 5:00 AM, SHOW NOTICE
+            // We ignore "totalActive" because the server is definitely off.
             const now = new Date();
-            const hour = now.getHours();
-            if (totalActive === 0 && (hour >= 21 || hour < 5)) {
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const startNight = 21 * 60 + 30; // 9:30 PM = 1290 minutes
+            const endNight = 5 * 60;         // 5:00 AM = 300 minutes
+
+            if (currentMinutes >= startNight || currentMinutes < endNight) {
                 document.getElementById('floating-night-notice').style.display = 'block';
                 document.getElementById('night-notice-sidebar').style.display = 'block';
+            } else {
+                document.getElementById('floating-night-notice').style.display = 'none';
+                document.getElementById('night-notice-sidebar').style.display = 'none';
             }
-
+            
             setTimeout(updateFleet, 10000); 
         }
 
