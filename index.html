@@ -7,25 +7,20 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
 
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background: #f0f2f5; overflow: hidden; }
-        
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        /* --- DASHBOARD (Top Right) --- */
+        /* DASHBOARD */
         .dashboard {
             position: absolute; top: 20px; right: 20px;
             width: 260px; background: #ffffff; padding: 15px;
             border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            /* Z-Index 1000: Above map, but below Sidebar */
-            z-index: 1000; 
-            display: flex; flex-direction: column; align-items: center;
+            z-index: 1000; display: flex; flex-direction: column; align-items: center;
         }
-
         .header-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
         .live-badge {
             width: 10px; height: 10px; background: #ef4444; border-radius: 50%;
@@ -37,144 +32,82 @@
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
         h2 { margin: 0; color: #0f172a; font-size: 18px; font-weight: 800; }
-        
         #status-text { 
             font-size: 13px; color: #64748b; font-weight: 600; 
             background: #f1f5f9; padding: 6px 12px; border-radius: 15px; margin-top: 4px;
             text-align: center; line-height: 1.4;
         }
-
         .loc-btn {
             margin-top: 10px; width: 100%; padding: 10px;
             background: #2563eb; color: white; border: none; border-radius: 12px;
             font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
         }
 
-        /* --- SIDEBAR MENU --- */
+        /* SIDEBAR */
         .menu-btn {
             position: absolute; top: 20px; left: 20px;
             background: white; border: none; padding: 12px;
             border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            font-size: 20px; cursor: pointer; 
-            z-index: 1001; /* Above Dashboard */
+            font-size: 20px; cursor: pointer; z-index: 1001; 
         }
-        
         .sidebar {
             position: fixed; top: 0; left: -320px; width: 300px; height: 100%;
-            background: white; 
-            /* Z-Index 9999: THE HIGHEST LAYER. Covers everything else. */
-            z-index: 9999; 
-            transition: left 0.3s ease;
-            box-shadow: 5px 0 25px rgba(0,0,0,0.1); padding: 20px;
-            overflow-y: auto;
+            background: white; z-index: 9999; transition: left 0.3s ease;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.1); padding: 20px; overflow-y: auto;
         }
         .sidebar.open { left: 0; }
-        
         .sidebar-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;
         }
         .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; }
         
-        /* BUS LIST ITEM LAYOUT */
         .bus-list-item {
             padding: 12px; margin-bottom: 8px; background: #f8fafc;
             border-radius: 10px; cursor: pointer; transition: background 0.2s;
             display: flex; align-items: center; justify-content: space-between;
         }
         .bus-list-item:hover { background: #e2e8f0; }
-        
         .bus-name { font-weight: 600; color: #334155; font-size: 14px; }
         
-        /* TRACK LINK & DOT CONTAINER */
-        .right-group {
-            display: flex; align-items: center; gap: 8px; /* Space between Link and Dot */
-        }
-
-        .mini-link {
-            font-size: 11px; color: #3b82f6; text-decoration: none; 
-            font-weight: 700;
-        }
+        .right-group { display: flex; align-items: center; gap: 8px; }
+        .mini-link { font-size: 11px; color: #3b82f6; text-decoration: none; font-weight: 700; }
         .mini-link:hover { text-decoration: underline; }
-
         .status-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; }
         .status-dot.active { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
 
-        /* --- ABOUT & VISITOR --- */
-        .about-toggle-btn {
-            margin-top: 15px; background: #f8fafc; color: #334155; 
-            font-weight: 600; font-size: 14px; border: 1px solid #e2e8f0;
-        }
-        .about-content {
-            display: none; 
-            margin-top: 10px; padding: 15px; background: #f1f5f9; border-radius: 8px;
-            font-size: 13px; color: #475569; line-height: 1.6;
-        }
-        .about-title { font-weight: 700; color: #0f172a; margin-bottom: 8px; font-size: 15px; }
-        .about-limit { margin-top: 12px; font-weight: 600; color: #ef4444; font-size: 13px; }
-        .about-credits { 
-            margin-top: 15px; font-size: 12px; color: #64748b; font-weight: 500; 
-            border-top: 1px solid #cbd5e1; padding-top: 10px;
-        }
-        .visitor-text {
-            font-size: 11px; color: #94a3b8; margin-top: 5px; font-weight: 600;
-        }
-
-        /* --- NOTICES --- */
+        /* NOTICES */
         #night-notice-sidebar {
-            display: none; 
-            background: #fee2e2; border: 1px solid #fecaca; color: #991b1b;
+            display: none; background: #fee2e2; border: 1px solid #fecaca; color: #991b1b;
             padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
             margin-bottom: 15px; text-align: center;
         }
-
-        /* FLOATING NOTICE (MOVED TO BOTTOM CENTER) */
         .floating-notice {
-            display: none; 
-            position: absolute; 
-            /* Fixed to Bottom so it never covers Top Dashboard */
-            bottom: 30px; 
-            left: 50%; transform: translateX(-50%);
-            
-            background: rgba(254, 226, 226, 0.95); 
-            border: 2px solid #ef4444; color: #991b1b;
-            padding: 12px 20px; border-radius: 50px;
-            font-weight: 700; font-size: 13px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-            
-            /* Z-Index 2000: Above map, but BELOW Sidebar (9999) */
-            z-index: 2000; 
-            
-            text-align: center; white-space: nowrap;
+            display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(254, 226, 226, 0.95); border: 2px solid #ef4444; color: #991b1b;
+            padding: 12px 20px; border-radius: 50px; font-weight: 700; font-size: 13px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15); z-index: 2000; text-align: center; white-space: nowrap;
             animation: pop-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        @keyframes pop-up {
-            from { transform: translateX(-50%) scale(0.8); opacity: 0; }
-            to { transform: translateX(-50%) scale(1); opacity: 1; }
-        }
+        @keyframes pop-up { from { transform: translateX(-50%) scale(0.8); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
 
-        /* --- POPUP STYLE --- */
+        /* POPUP & ICON */
         .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; }
         .leaflet-popup-content { margin: 0; width: 240px !important; }
         .popup-header { background: #003366; color: white; padding: 12px; font-weight: 700; font-size: 15px; }
         .popup-body { padding: 15px; background: white; }
-        .track-link {
-            display: block; margin-top: 10px; text-align: center;
-            background: #e2e8f0; color: #0f172a; padding: 8px; 
-            border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 12px;
-        }
-
-        /* --- ROTATING BUS ICON STYLE --- */
-        .bus-icon-wrapper {
-            position: relative;
-            width: 40px; height: 40px;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .bus-img-top {
-            width: 22px; height: 48px;
-            transition: transform 0.5s linear; /* Smooth rotation */
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
-        }
+        .track-link { display: block; margin-top: 10px; text-align: center; background: #e2e8f0; color: #0f172a; padding: 8px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 12px; }
+        
+        .bus-icon-wrapper { position: relative; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
+        .bus-img-top { width: 22px; height: 48px; transition: transform 0.5s linear; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+        
+        /* About Styles */
+        .about-toggle-btn { margin-top: 15px; background: #f8fafc; color: #334155; font-weight: 600; font-size: 14px; border: 1px solid #e2e8f0; }
+        .about-content { display: none; margin-top: 10px; padding: 15px; background: #f1f5f9; border-radius: 8px; font-size: 13px; color: #475569; line-height: 1.6; }
+        .about-title { font-weight: 700; color: #0f172a; margin-bottom: 8px; font-size: 15px; }
+        .about-limit { margin-top: 12px; font-weight: 600; color: #ef4444; font-size: 13px; }
+        .about-credits { margin-top: 15px; font-size: 12px; color: #64748b; font-weight: 500; border-top: 1px solid #cbd5e1; padding-top: 10px; }
+        .visitor-text { font-size: 11px; color: #94a3b8; margin-top: 5px; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -211,20 +144,18 @@
             <div class="about-title">BUFT Unified Bus Tracker</div>
             <p style="margin: 0 0 10px 0;">
                 The BUFT Unified Bus Tracker is a comprehensive, student-led platform designed to modernize university transportation. 
-                By aggregating real-time GPS data, we aim to replace manual tracking system with a digital solution with convenience for the entire campus community.
+                By aggregating real-time GPS data, we aim to replace manual inquiries with a digital solution that enhances safety 
+                and convenience for the entire campus community.
             </p>
-            
             <div class="about-limit">⚠️ System Limitations:</div>
             <ul style="padding-left: 15px; margin: 5px 0; font-size: 12px;">
                 <li><b>Startup:</b> ~1 min delay if server is sleeping.</li>
-                <li><b>Quota:</b> Occasional lags due to free-tier hosting.</li>
+                <li><b>Quota:</b> Occasional lags due to hosting limits.</li>
                 <li><b>Heading:</b> Bus direction arrows are approximate.</li>
             </ul>
-
             <div class="about-credits">
-                Developed by: <b>Shazzad Hossain Nabil (TE 221)</b> <br>
+                Lead Developer: <b>Shazzad Hossain Nabil (TE 221)</b> <br>
                 Assisted by: <b>Google Gemini AI</b>
-                
                 <div id="visitor-count" class="visitor-text">Total Visitors: ...</div>
             </div>
         </div>
@@ -242,13 +173,9 @@
     </div>
 
     <script>
-        // 1. SETUP MAP
         const map = L.map('map', {zoomControl: false}).setView([23.8741, 90.3992], 11);
         L.control.zoom({position: 'bottomright'}).addTo(map);
-        
-        L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-            maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3']
-        }).addTo(map);
+        L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'] }).addTo(map);
 
         const SERVER = "https://bus-server-lr2x.onrender.com"; 
 
@@ -285,16 +212,11 @@
         const busAngles = {}; 
         let userMarker = null;
 
-        // Populate Sidebar
         const listContainer = document.getElementById('bus-list-container');
         BUSES.forEach(bus => {
             const item = document.createElement('div');
             item.className = 'bus-list-item';
-            
-            // Direct Tracking Link
             const liveLink = `https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}`;
-
-            // Updated Layout: Name ... Link + Dot
             item.innerHTML = `
                 <div class="bus-name">${bus.name}</div>
                 <div class="right-group">
@@ -306,17 +228,10 @@
             listContainer.appendChild(item);
         });
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function toggleAbout() {
             const box = document.getElementById('about-box');
-            if (box.style.display === "block") {
-                box.style.display = "none";
-            } else {
-                box.style.display = "block";
-            }
+            box.style.display = (box.style.display === "block") ? "none" : "block";
         }
 
         function focusBus(id) {
@@ -330,10 +245,8 @@
             }
         }
 
-        // --- TOP-DOWN BUS ICON ---
         const topDownBusSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 240"><rect x="10" y="10" width="80" height="220" rx="15" fill="#003366" stroke="#ffffff" stroke-width="5"/><path d="M15 30 L85 30 L85 60 L15 60 Z" fill="#4dabf7"/><circle cx="20" cy="220" r="4" fill="#ef4444"/><circle cx="80" cy="220" r="4" fill="#ef4444"/><path d="M10 180 L90 180" stroke="#ffffff" stroke-width="2" stroke-dasharray="5,5"/></svg>`;
         const busImgSrc = "data:image/svg+xml;base64," + btoa(topDownBusSvg);
-
         var userIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -354,11 +267,9 @@
             }, () => { alert("Enable location."); btn.innerHTML = "❌ Denied"; });
         }
 
-        // --- MATH: Calculate Bearing ---
         function calculateBearing(lat1, lng1, lat2, lng2) {
             const y = Math.sin(lng2 - lng1) * Math.cos(lat2);
-            const x = Math.cos(lat1) * Math.sin(lat2) -
-                    Math.sin(lat1) * Math.cos(lat2) * Math.cos(lng2 - lng1);
+            const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lng2 - lng1);
             const theta = Math.atan2(y, x);
             return (theta * 180 / Math.PI + 360) % 360; 
         }
@@ -378,20 +289,14 @@
                     let driver = info.driver_json ? (info.driver_json.name || "Unknown") : "Unknown";
                     let mobile = info.driver_json ? (info.driver_json.mobile_no || "--") : "--";
                     
-                    // SMART DIRECTION
                     let course = 0;
                     if (markers[bus.id]) {
                         const oldPos = markers[bus.id].getLatLng();
                         if (oldPos.lat !== lat || oldPos.lng !== lng) {
                             course = calculateBearing(toRad(oldPos.lat), toRad(oldPos.lng), toRad(lat), toRad(lng));
                             busAngles[bus.id] = course;
-                        } else {
-                            course = busAngles[bus.id] || 0;
-                        }
-                    } else {
-                        course = 0; 
-                        busAngles[bus.id] = 0;
-                    }
+                        } else { course = busAngles[bus.id] || 0; }
+                    } else { course = 0; busAngles[bus.id] = 0; }
 
                     const liveLink = `https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}`;
 
@@ -404,16 +309,10 @@
                                 <div style="margin-bottom:5px">📍 ${info.location || "Moving..."}</div>
                                 <div style="color:#22c55e; font-weight:bold;">🚀 ${info.speed} km/h</div>
                                 <a href="${liveLink}" target="_blank" class="track-link">🔗 Open Full Tracker</a>
-                            </div>
-                        `;
-
+                            </div>`;
                         const customIcon = L.divIcon({
                             className: 'custom-bus-icon',
-                            html: `
-                                <div class="bus-icon-wrapper">
-                                    <img src="${busImgSrc}" class="bus-img-top" id="img-${bus.id}" style="transform: rotate(${course}deg);">
-                                </div>
-                            `,
+                            html: `<div class="bus-icon-wrapper"><img src="${busImgSrc}" class="bus-img-top" id="img-${bus.id}" style="transform: rotate(${course}deg);"></div>`,
                             iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -20]
                         });
 
@@ -424,7 +323,6 @@
                         } else {
                             markers[bus.id] = L.marker([lat, lng], {icon: customIcon}).addTo(map).bindPopup(popup);
                         }
-                        
                         const dot = document.getElementById(`dot-${bus.id}`);
                         if(dot) dot.classList.add('active');
                         return true;
@@ -434,59 +332,58 @@
             return false;
         }
 
-        // --- WAKE UP LOGIC ---
         async function updateFleet() {
             const statusEl = document.getElementById('status-text');
-            statusEl.innerText = "📡 Scanning Network...";
-            statusEl.style.color = "#64748b";
-
+            if (!document.querySelector('.status-dot.active')) {
+                statusEl.innerText = "📡 Scanning Network...";
+                statusEl.style.color = "#64748b";
+            }
             const wakeUpTimer = setTimeout(() => {
                 if (statusEl.innerText.includes("Scanning")) {
                     statusEl.innerText = "💤 Waking up Server... (Wait ~1 min)";
-                    statusEl.style.color = "#d97706"; // Orange
+                    statusEl.style.color = "#d97706"; 
                 }
             }, 6000);
 
-            let count = 0;
-            const BATCH_SIZE = 5; 
+            let totalActive = 0;
+            const BATCH_SIZE = 8; 
+            
             for (let i = 0; i < BUSES.length; i += BATCH_SIZE) {
                 const batch = BUSES.slice(i, i + BATCH_SIZE);
                 const results = await Promise.all(batch.map(bus => fetchBus(bus)));
-                count += results.filter(r => r).length;
-                if(count > 0) {
+                totalActive += results.filter(r => r).length;
+
+                // --- SMART NIGHT MODE LOGIC ---
+                // 1. If we found buses, HIDE the notice (even if it's night)
+                if (totalActive > 0) {
                     clearTimeout(wakeUpTimer);
-                    statusEl.innerText = `✅ Active: ${count} Buses`;
-                    statusEl.style.color = "#059669"; // Green
+                    statusEl.innerText = `✅ Active: ${totalActive} Buses`;
+                    statusEl.style.color = "#059669"; 
+                    
+                    document.getElementById('floating-night-notice').style.display = 'none';
+                    document.getElementById('night-notice-sidebar').style.display = 'none';
                 }
             }
+            
+            // 2. If NO buses found AND it is Night Time -> SHOW Notice
+            const now = new Date();
+            const hour = now.getHours();
+            if (totalActive === 0 && (hour >= 21 || hour < 5)) {
+                document.getElementById('floating-night-notice').style.display = 'block';
+                document.getElementById('night-notice-sidebar').style.display = 'block';
+            }
+
             setTimeout(updateFleet, 10000); 
         }
 
         function updateVisitorCount() {
             fetch("https://api.counterapi.dev/v1/buft-tracker-nabil/view/up")
-                .then(res => res.json())
-                .then(data => {
+                .then(res => res.json()).then(data => {
                     const el = document.getElementById('visitor-count');
                     if(el) el.innerText = `Total Visitors: ${data.count}`;
-                })
-                .catch(e => console.log("Counter Error:", e));
+                }).catch(e => console.log("Counter Error:", e));
         }
 
-        // --- CHECK SERVER HOURS (9 PM - 5 AM) ---
-        function checkServerHours() {
-            const now = new Date();
-            const hour = now.getHours(); // 0 to 23
-
-            // If time is 21:00 (9PM) or later, OR before 05:00 (5AM)
-            if (hour >= 21 || hour < 5) {
-                // Show Sidebar Notice
-                document.getElementById('night-notice-sidebar').style.display = 'block';
-                // Show Floating Main Page Notice
-                document.getElementById('floating-night-notice').style.display = 'block';
-            }
-        }
-
-        checkServerHours();
         updateFleet();
         updateVisitorCount();
     </script>
