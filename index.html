@@ -240,9 +240,9 @@
             if (!document.querySelector('.status-dot.active')) { statusEl.innerText = "📡 Scanning Network..."; statusEl.style.color = "#64748b"; }
 
             let totalActive = 0;
-            // --- THE SPEED FIX: "STAGGERED FIRE" ---
-            // Instead of batching (Wait... Go...), we fire one by one with a tiny delay.
-            // This is visually faster and avoids the "Traffic Light" stop.
+            // --- STREAMING MODE (Smart Concurrency) ---
+            // This is actually faster than "9 at a time" because it never stops.
+            // It just keeps firing requests one after another.
             for (let i = 0; i < BUSES.length; i++) {
                 fetchBus(BUSES[i]).then(isActive => {
                     if (isActive) {
@@ -251,12 +251,13 @@
                         statusEl.style.color = "#059669";
                     }
                 });
-                // Small delay (50ms) to prevent browser freeze, but basically instant.
-                await new Promise(r => setTimeout(r, 50)); 
+                // 30ms delay = Extremely Fast Stream
+                await new Promise(r => setTimeout(r, 30)); 
             }
             
             checkServerHours();
-            setTimeout(updateFleet, 10000); 
+            // --- 2 Second Wait (Real-Time Feel) ---
+            setTimeout(updateFleet, 2000); 
         }
 
         function checkServerHours() {
