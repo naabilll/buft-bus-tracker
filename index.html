@@ -190,15 +190,6 @@
         }
         function toRad(deg) { return deg * Math.PI / 180; }
         
-        function parseBusTime(dateString) {
-            if(!dateString) return new Date();
-            const parts = dateString.split(' ');
-            if(parts.length < 2) return new Date();
-            const dateParts = parts[0].split('-');
-            const timeParts = parts[1].split(':');
-            return new Date(dateParts[2], dateParts[1]-1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
-        }
-
         async function fetchBus(bus) {
             try {
                 const res = await fetch(`${SERVER}/bus-api?id=${bus.id}&imei=${bus.imei}`);
@@ -214,19 +205,16 @@
                     const speed = parseFloat(info.speed) || 0;
 
                     let busColor = '#22c55e'; // Green
-                    if (speed < 1) busColor = '#ef4444'; // Red
+                    let status = "Running";
+                    if (speed < 1) { busColor = '#ef4444'; status = "Stopped"; }
                     if (speed > 40) busColor = '#a855f7'; // Purple
 
-                    let isGhost = false;
-                    let lastSeenText = "";
-                    if (info.device_time) {
-                         const lastUpdate = parseBusTime(info.device_time);
-                         const diffMins = (new Date() - lastUpdate) / 60000;
-                         if (diffMins > 5) {
-                             isGhost = true;
-                             lastSeenText = `<div style="color:#ef4444; font-weight:bold; font-size:11px;">⚠️ Last seen: ${Math.round(diffMins)} mins ago</div>`;
-                         }
-                    }
+                    // --- MATCHING MAIN SERVER DATA ---
+                    // 1. Get raw duration if available (e.g., "05 mins")
+                    let durationText = info.duration ? info.duration : "--"; 
+                    
+                    // 2. Get exact Last Updated time (e.g. "18-02-2026 12:10:15 PM")
+                    let lastUpdated = info.device_time || "--";
 
                     let course = 0;
                     if (markers[bus.id]) {
@@ -238,22 +226,30 @@
                     } else { course = 0; busAngles[bus.id] = 0; }
 
                     if (lat > 0) {
+                        // --- POPUP MATCHING SCREENSHOT ---
                         const popup = `
-                            <div class="popup-header">🚌 ${bus.name}</div>
+                            <div class="popup-header" style="background:${busColor}">🚌 ${bus.name}</div>
                             <div class="popup-body">
-                                <div style="margin-bottom:5px">👤 <b>${driver}</b></div>
-                                <div style="margin-bottom:5px">📞 ${mobile}</div>
-                                <div style="margin-bottom:5px">📍 ${info.location || "Moving..."}</div>
-                                ${lastSeenText}
-                                <div style="color:${busColor}; font-weight:bold;">🚀 ${info.speed} km/h</div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px; font-weight:bold; color:#334155;">
+                                    <span>${status}</span>
+                                    <span>Since ${durationText}</span>
+                                </div>
+                                <div style="margin-bottom:8px; font-size:13px; font-weight:600; color:#334155;">
+                                    Speed: ${info.speed} km/h
+                                </div>
+                                <div style="margin-bottom:8px; font-size:12px; color:#64748b;">
+                                    Location: ${info.location || "Moving..."}
+                                </div>
+                                <div style="font-size:10px; color:#94a3b8; text-align:right; margin-top:5px; border-top:1px solid #eee; padding-top:5px;">
+                                    Last Updated At: ${lastUpdated}
+                                </div>
                                 <a href="https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}" target="_blank" class="track-link">🔗 Open Full Tracker</a>
                             </div>`;
                         
                         const svgString = getBusSVG(busColor);
                         const busImgSrc = "data:image/svg+xml;base64," + btoa(svgString);
 
-                        let iconClass = isGhost ? 'custom-bus-icon ghost-bus' : 'custom-bus-icon';
-                        
+                        let iconClass = 'custom-bus-icon';
                         const customIcon = L.divIcon({ 
                             className: iconClass, 
                             html: `<div class="bus-icon-wrapper"><img src="${busImgSrc}" class="bus-img-top" id="img-${bus.id}" style="transform: rotate(${course}deg);"></div>`, 
@@ -291,8 +287,7 @@
             }
             
             checkServerHours();
-            // OPTIMIZED: Changed from 2000 to 7000 (7 seconds) to fix overloading issues
-            setTimeout(updateFleet, 7000); 
+            setTimeout(updateFleet, 2000); 
         }
 
         function checkServerHours() {
