@@ -14,10 +14,7 @@
         body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background: #f0f2f5; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        /* GHOST MODE CSS */
-        .ghost-bus img { 
-            filter: grayscale(100%) opacity(0.5); 
-        }
+        .ghost-bus img { filter: grayscale(100%) opacity(0.5); }
 
         .dashboard {
             position: absolute; top: 20px; right: 20px;
@@ -94,13 +91,13 @@
                 <li><b>Smart Colors:</b> Red (Stopped), Green (Moving).</li>
                 <li><b>Ghost Mode:</b> Inactive buses fade away.</li>
                 <li><b>High-Viz Icons:</b> Strong outline & direction cap.</li>
-                <li><b>Fast Engine:</b> 3x faster loading speed.</li>
+                <li><b>Fast Engine:</b> 5s cycle for smooth tracking.</li>
             </ul>
 
             <div class="about-limit">⚠️ System Status:</div>
             <ul style="padding-left: 15px; margin: 5px 0; font-size: 12px;">
                 <li><b>Server Sleep:</b> First load takes ~60s (Free Tier).</li>
-                <li><b>Real-Time:</b> GPS updates every 2-5 seconds.</li>
+                <li><b>Real-Time:</b> GPS updates every 5 seconds.</li>
                 <li><b>Accurate Heading:</b> Direction calculated dynamically.</li>
             </ul>
             
@@ -190,6 +187,15 @@
         }
         function toRad(deg) { return deg * Math.PI / 180; }
         
+        function parseBusTime(dateString) {
+            if(!dateString) return new Date();
+            const parts = dateString.split(' ');
+            if(parts.length < 2) return new Date();
+            const dateParts = parts[0].split('-');
+            const timeParts = parts[1].split(':');
+            return new Date(dateParts[2], dateParts[1]-1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
+        }
+
         async function fetchBus(bus) {
             try {
                 const res = await fetch(`${SERVER}/bus-api?id=${bus.id}&imei=${bus.imei}`);
@@ -209,13 +215,27 @@
                     if (speed < 1) { busColor = '#ef4444'; status = "Stopped"; }
                     if (speed > 40) busColor = '#a855f7'; // Purple
 
-                    // --- KEY FINDER (FIXED) ---
-                    // Try ALL known names for duration and time to prevent "--"
-                    let durationText = info.duration || info.stop_duration || info.halt_duration || info.running_duration || "--";
-                    let lastUpdated = info.device_time || info.devicetime || info.date_time || info.dt || "--";
+                    // --- CALCULATION LOGIC FOR "SINCE" ---
+                    let durationText = "--";
+                    let lastUpdated = info.device_time || "--";
 
-                    // Console log for debugging (remove later if needed)
-                    console.log(`Bus ${bus.name} Data:`, info);
+                    if (info.device_time) {
+                        const now = new Date();
+                        const updateTime = parseBusTime(info.device_time);
+                        const diffMs = now - updateTime;
+                        const diffMins = Math.floor(diffMs / 60000);
+                        const diffHrs = Math.floor(diffMins / 60);
+                        const remMins = diffMins % 60;
+
+                        if (diffHrs > 0) {
+                            durationText = `${diffHrs}h ${remMins}m`;
+                        } else {
+                            durationText = `${diffMins} mins`;
+                        }
+                    }
+
+                    // Console log to debug keys if needed
+                    // console.log(info); 
 
                     let course = 0;
                     if (markers[bus.id]) {
@@ -227,6 +247,7 @@
                     } else { course = 0; busAngles[bus.id] = 0; }
 
                     if (lat > 0) {
+                        // --- UPDATED POPUP (Calculated Data) ---
                         const popup = `
                             <div class="popup-header" style="background:${busColor}">🚌 ${bus.name}</div>
                             <div class="popup-body">
@@ -287,7 +308,8 @@
             }
             
             checkServerHours();
-            setTimeout(updateFleet, 2000); 
+            // SAFETY: 5000ms delay to prevent server jams
+            setTimeout(updateFleet, 5000); 
         }
 
         function checkServerHours() {
