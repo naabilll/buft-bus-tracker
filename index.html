@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BUFT Shuttle Live v2.0</title>
+    <title>BUFT Bus Tracker</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
@@ -83,22 +83,21 @@
         
         <div class="bus-list-item about-toggle-btn" onclick="toggleAbout()">ℹ️ About</div>
         <div id="about-box" class="about-content">
-            <div class="about-title">BUFT Unified Bus Tracker <span style="font-size:12px; background:#2563eb; color:white; padding:2px 6px; border-radius:4px; vertical-align:middle;">v2.0</span></div>
+            <div class="about-title">BUFT Unified Bus Tracker <span style="font-size:12px; background:#2563eb; color:white; padding:2px 6px; border-radius:4px; vertical-align:middle;">v2.1</span></div>
             <p style="margin: 0 0 10px 0;">A comprehensive, student-led platform designed to modernize university transportation.</p>
             
-            <div class="about-limit" style="color:#0f172a;">What's New in v2.0:</div>
+            <div class="about-limit" style="color:#0f172a;">What's New in v2.1:</div>
             <ul class="new-feature-list">
                 <li><b>Smart Colors:</b> Red (Stopped), Green (Moving).</li>
-                <li><b>Ghost Mode:</b> Inactive buses fade away.</li>
-                <li><b>High-Viz Icons:</b> Strong outline & direction cap.</li>
-                <li><b>Fast Engine:</b> 5s cycle for smooth tracking.</li>
+                <li><b>Raw Data:</b> Exact "Since" time & "Last Updated" from server.</li>
+                <li><b>True Heading:</b> Accurate bus rotation from GPS.</li>
+                <li><b>Stable Engine:</b> 5s cycle for smooth tracking.</li>
             </ul>
 
             <div class="about-limit">⚠️ System Status:</div>
             <ul style="padding-left: 15px; margin: 5px 0; font-size: 12px;">
                 <li><b>Server Sleep:</b> First load takes ~60s (Free Tier).</li>
                 <li><b>Real-Time:</b> GPS updates every 5 seconds.</li>
-                <li><b>Accurate Heading:</b> Direction calculated dynamically.</li>
             </ul>
             
             <div class="about-credits">Developed By: <b>Shazzad Hossain Nabil (TE_221)</b> <br>Assisted by: <b>Google Gemini AI</b><div id="visitor-count" class="visitor-text">Total Visitors: ...</div></div>
@@ -134,7 +133,7 @@
             { name: "BRTC 03", id: "344955", imei: "863051061786629" }, { name: "BRTC 04", id: "344956", imei: "863051061998075" }
         ];
 
-        const markers = {}; const busAngles = {}; let userMarker = null;
+        const markers = {}; let userMarker = null;
 
         const listContainer = document.getElementById('bus-list-container');
         BUSES.forEach(bus => {
@@ -180,22 +179,6 @@
             }, () => { alert("Enable location."); btn.innerHTML = "❌ Denied"; });
         }
 
-        function calculateBearing(lat1, lng1, lat2, lng2) {
-            const y = Math.sin(lng2 - lng1) * Math.cos(lat2);
-            const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lng2 - lng1);
-            return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360; 
-        }
-        function toRad(deg) { return deg * Math.PI / 180; }
-        
-        function parseBusTime(dateString) {
-            if(!dateString) return new Date();
-            const parts = dateString.split(' ');
-            if(parts.length < 2) return new Date();
-            const dateParts = parts[0].split('-');
-            const timeParts = parts[1].split(':');
-            return new Date(dateParts[2], dateParts[1]-1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
-        }
-
         async function fetchBus(bus) {
             try {
                 const res = await fetch(`${SERVER}/bus-api?id=${bus.id}&imei=${bus.imei}`);
@@ -215,39 +198,20 @@
                     if (speed < 1) { busColor = '#ef4444'; status = "Stopped"; }
                     if (speed > 40) busColor = '#a855f7'; // Purple
 
-                    // --- CALCULATION LOGIC FOR "SINCE" ---
+                    // --- REAL SERVER DATA (v2.1) ---
+                    // 1. Duration (e.g. "122:17" -> "122h 17m")
                     let durationText = "--";
-                    let lastUpdated = info.device_time || "--";
-
-                    if (info.device_time) {
-                        const now = new Date();
-                        const updateTime = parseBusTime(info.device_time);
-                        const diffMs = now - updateTime;
-                        const diffMins = Math.floor(diffMs / 60000);
-                        const diffHrs = Math.floor(diffMins / 60);
-                        const remMins = diffMins % 60;
-
-                        if (diffHrs > 0) {
-                            durationText = `${diffHrs}h ${remMins}m`;
-                        } else {
-                            durationText = `${diffMins} mins`;
-                        }
+                    if (info.since) {
+                        durationText = info.since.replace(":", "h ") + "m";
                     }
 
-                    // Console log to debug keys if needed
-                    // console.log(info); 
+                    // 2. Last Updated (e.g. "13-02-2026 09:42:57 AM")
+                    let lastUpdated = info.data_inserted_time || "--";
 
-                    let course = 0;
-                    if (markers[bus.id]) {
-                        const oldPos = markers[bus.id].getLatLng();
-                        if (oldPos.lat !== lat || oldPos.lng !== lng) {
-                            course = calculateBearing(toRad(oldPos.lat), toRad(oldPos.lng), toRad(lat), toRad(lng));
-                            busAngles[bus.id] = course;
-                        } else { course = busAngles[bus.id] || 0; }
-                    } else { course = 0; busAngles[bus.id] = 0; }
+                    // 3. Exact Angle (0-360)
+                    let course = parseInt(info.angle) || 0;
 
                     if (lat > 0) {
-                        // --- UPDATED POPUP (Calculated Data) ---
                         const popup = `
                             <div class="popup-header" style="background:${busColor}">🚌 ${bus.name}</div>
                             <div class="popup-body">
