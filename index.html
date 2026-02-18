@@ -14,6 +14,8 @@
         body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background: #f0f2f5; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
+        .ghost-bus img { filter: grayscale(100%) opacity(0.5); }
+
         .dashboard {
             position: absolute; top: 20px; right: 20px;
             width: 260px; background: #ffffff; padding: 15px;
@@ -36,6 +38,9 @@
         .bus-list-item { padding: 12px; margin-bottom: 8px; background: #f8fafc; border-radius: 10px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: space-between; }
         .bus-list-item:hover { background: #e2e8f0; }
         .bus-name { font-weight: 600; color: #334155; font-size: 14px; }
+        .right-group { display: flex; align-items: center; gap: 8px; }
+        .mini-link { font-size: 11px; color: #3b82f6; text-decoration: none; font-weight: 700; }
+        .mini-link:hover { text-decoration: underline; }
         .status-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; }
         .status-dot.active { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
         
@@ -43,19 +48,16 @@
         .floating-notice { display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(254, 226, 226, 0.95); border: 2px solid #ef4444; color: #991b1b; padding: 12px 20px; border-radius: 50px; font-weight: 700; font-size: 13px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); z-index: 2000; text-align: center; white-space: nowrap; animation: pop-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes pop-up { from { transform: translateX(-50%) scale(0.8); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
 
-        /* Popup Styling */
+        /* POPUP STYLING - REFINED */
         .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .leaflet-popup-content { margin: 0; width: 260px !important; }
-        .popup-header { color: white; padding: 12px 15px; font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+        .popup-header { color: white; padding: 12px 15px; font-weight: 800; font-size: 15px; }
         .popup-body { padding: 15px; background: white; font-family: 'Outfit', sans-serif; }
-        
         .info-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 13px; color: #334155; }
-        .info-icon { width: 20px; text-align: center; margin-right: 8px; font-size: 14px; }
-        
-        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .info-icon { width: 22px; text-align: center; margin-right: 8px; font-size: 14px; }
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
         .track-link { display: block; margin-top: 12px; text-align: center; background: #e2e8f0; color: #0f172a; padding: 10px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; transition: background 0.2s; }
-        .track-link:hover { background: #cbd5e1; }
-
+        
         .bus-icon-wrapper { position: relative; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; } 
         .bus-img-top { width: 34px; height: 60px; transition: transform 0.5s linear; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
         
@@ -85,15 +87,15 @@
         
         <div class="bus-list-item about-toggle-btn" onclick="toggleAbout()">ℹ️ About</div>
         <div id="about-box" class="about-content">
-            <div class="about-title">BUFT Unified Bus Tracker <span style="font-size:12px; background:#2563eb; color:white; padding:2px 6px; border-radius:4px; vertical-align:middle;">v2.1</span></div>
+            <div class="about-title">BUFT Unified Bus Tracker <span style="font-size:12px; background:#2563eb; color:white; padding:2px 6px; border-radius:4px; vertical-align:middle;">v2.2</span></div>
             <p style="margin: 0 0 10px 0;">A comprehensive, student-led platform designed to modernize university transportation.</p>
             
-            <div class="about-limit" style="color:#0f172a;">What's New in v2.1:</div>
+            <div class="about-limit" style="color:#0f172a;">What's New in v2.2:</div>
             <ul class="new-feature-list">
+                <li><b>Time Sync:</b> Corrected 1-hour server lag.</li>
                 <li><b>Smart Colors:</b> Red (Stopped), Green (Moving).</li>
-                <li><b>Rich Info:</b> Driver & Speed details restored.</li>
+                <li><b>Rich Info:</b> Driver, Speed & Phone restored.</li>
                 <li><b>Click-to-Call:</b> Tap phone number to dial.</li>
-                <li><b>Stable Engine:</b> 5s cycle for smooth tracking.</li>
             </ul>
 
             <div class="about-limit">⚠️ System Status:</div>
@@ -180,6 +182,47 @@
             }, () => { alert("Enable location."); btn.innerHTML = "❌ Denied"; });
         }
 
+        // --- TIME CORRECTION FUNCTION ---
+        function fixTime(timeStr) {
+            if (!timeStr || timeStr === "--") return "--";
+            try {
+                // Parse "13-02-2026 09:42:57 AM"
+                const parts = timeStr.split(/[- :]/); // Splits by -, space, or :
+                if (parts.length < 6) return timeStr;
+
+                let day = parseInt(parts[0]);
+                let month = parseInt(parts[1]) - 1; // JS months are 0-11
+                let year = parseInt(parts[2]);
+                let hours = parseInt(parts[3]);
+                let minutes = parseInt(parts[4]);
+                let seconds = parseInt(parts[5]);
+                let ampm = parts[6];
+
+                if (ampm === "PM" && hours < 12) hours += 12;
+                if (ampm === "AM" && hours === 12) hours = 0;
+
+                let date = new Date(year, month, day, hours, minutes, seconds);
+                
+                // --- THE FIX: ADD 1 HOUR ---
+                date.setHours(date.getHours() + 1);
+
+                // Format back to string
+                let h = date.getHours();
+                const a = h >= 12 ? 'PM' : 'AM';
+                h = h % 12;
+                h = h ? h : 12; // the hour '0' should be '12'
+                let m = date.getMinutes().toString().padStart(2, '0');
+                let s = date.getSeconds().toString().padStart(2, '0');
+                let d = date.getDate().toString().padStart(2, '0');
+                let mo = (date.getMonth() + 1).toString().padStart(2, '0');
+                let yStr = date.getFullYear();
+
+                return `${d}-${mo}-${yStr} ${h}:${m}:${s} ${a}`;
+            } catch(e) {
+                return timeStr; // Fallback if parsing fails
+            }
+        }
+
         async function fetchBus(bus) {
             try {
                 const res = await fetch(`${SERVER}/bus-api?id=${bus.id}&imei=${bus.imei}`);
@@ -191,25 +234,27 @@
                     const info = data.root[0][0];
                     const lat = parseFloat(info.latitude); const lng = parseFloat(info.longitude);
                     
-                    // --- RESTORED DATA ---
-                    let driverName = "Unknown Driver";
+                    // --- DRIVER & EMOJI DATA ---
+                    let driverName = "Unknown";
                     let mobileNo = "--";
                     if (info.driver_json) {
-                        // Sometimes driver_json is a string in raw data, sometimes an object
                         let dObj = (typeof info.driver_json === 'string') ? JSON.parse(info.driver_json.replace(/'/g, '"')) : info.driver_json;
-                        driverName = dObj.name || "Unknown Driver";
+                        driverName = dObj.name || "Unknown";
                         mobileNo = dObj.mobile_no || "--";
                     }
 
                     const speed = parseFloat(info.speed) || 0;
                     let busColor = '#22c55e'; // Green
-                    let status = "RUNNING";
-                    if (speed < 1) { busColor = '#ef4444'; status = "STOPPED"; }
+                    let status = "Running";
+                    if (speed < 1) { busColor = '#ef4444'; status = "Stopped"; }
                     if (speed > 40) busColor = '#a855f7'; // Purple
 
-                    // --- FORMATTING ---
+                    // --- TIME & DURATION ---
                     let durationText = info.since ? info.since.replace(":", "h ") + "m" : "--";
-                    let lastUpdated = info.data_inserted_time || "--";
+                    
+                    // Apply Time Fix (+1 Hour)
+                    let lastUpdated = fixTime(info.data_inserted_time);
+                    
                     let course = parseInt(info.angle) || 0;
 
                     if (lat > 0) {
@@ -278,7 +323,6 @@
             }
             
             checkServerHours();
-            // SAFETY: 5000ms delay to prevent server jams
             setTimeout(updateFleet, 5000); 
         }
 
