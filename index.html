@@ -209,12 +209,13 @@
                     if (speed < 1) { busColor = '#ef4444'; status = "Stopped"; }
                     if (speed > 40) busColor = '#a855f7'; // Purple
 
-                    // --- MATCHING MAIN SERVER DATA ---
-                    // 1. Get raw duration if available (e.g., "05 mins")
-                    let durationText = info.duration ? info.duration : "--"; 
-                    
-                    // 2. Get exact Last Updated time (e.g. "18-02-2026 12:10:15 PM")
-                    let lastUpdated = info.device_time || "--";
+                    // --- KEY FINDER (FIXED) ---
+                    // Try ALL known names for duration and time to prevent "--"
+                    let durationText = info.duration || info.stop_duration || info.halt_duration || info.running_duration || "--";
+                    let lastUpdated = info.device_time || info.devicetime || info.date_time || info.dt || "--";
+
+                    // Console log for debugging (remove later if needed)
+                    console.log(`Bus ${bus.name} Data:`, info);
 
                     let course = 0;
                     if (markers[bus.id]) {
@@ -226,7 +227,6 @@
                     } else { course = 0; busAngles[bus.id] = 0; }
 
                     if (lat > 0) {
-                        // --- POPUP MATCHING SCREENSHOT ---
                         const popup = `
                             <div class="popup-header" style="background:${busColor}">🚌 ${bus.name}</div>
                             <div class="popup-body">
