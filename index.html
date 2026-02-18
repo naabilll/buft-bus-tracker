@@ -14,8 +14,6 @@
         body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background: #f0f2f5; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        .ghost-bus img { filter: grayscale(100%) opacity(0.5); }
-
         .dashboard {
             position: absolute; top: 20px; right: 20px;
             width: 260px; background: #ffffff; padding: 15px;
@@ -38,9 +36,6 @@
         .bus-list-item { padding: 12px; margin-bottom: 8px; background: #f8fafc; border-radius: 10px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: space-between; }
         .bus-list-item:hover { background: #e2e8f0; }
         .bus-name { font-weight: 600; color: #334155; font-size: 14px; }
-        .right-group { display: flex; align-items: center; gap: 8px; }
-        .mini-link { font-size: 11px; color: #3b82f6; text-decoration: none; font-weight: 700; }
-        .mini-link:hover { text-decoration: underline; }
         .status-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; }
         .status-dot.active { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
         
@@ -48,12 +43,19 @@
         .floating-notice { display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(254, 226, 226, 0.95); border: 2px solid #ef4444; color: #991b1b; padding: 12px 20px; border-radius: 50px; font-weight: 700; font-size: 13px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); z-index: 2000; text-align: center; white-space: nowrap; animation: pop-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes pop-up { from { transform: translateX(-50%) scale(0.8); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
 
-        .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; }
-        .leaflet-popup-content { margin: 0; width: 240px !important; }
-        .popup-header { background: #003366; color: white; padding: 12px; font-weight: 700; font-size: 15px; }
-        .popup-body { padding: 15px; background: white; }
-        .track-link { display: block; margin-top: 10px; text-align: center; background: #e2e8f0; color: #0f172a; padding: 8px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 12px; }
+        /* Popup Styling */
+        .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .leaflet-popup-content { margin: 0; width: 260px !important; }
+        .popup-header { color: white; padding: 12px 15px; font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+        .popup-body { padding: 15px; background: white; font-family: 'Outfit', sans-serif; }
         
+        .info-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 13px; color: #334155; }
+        .info-icon { width: 20px; text-align: center; margin-right: 8px; font-size: 14px; }
+        
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .track-link { display: block; margin-top: 12px; text-align: center; background: #e2e8f0; color: #0f172a; padding: 10px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; transition: background 0.2s; }
+        .track-link:hover { background: #cbd5e1; }
+
         .bus-icon-wrapper { position: relative; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; } 
         .bus-img-top { width: 34px; height: 60px; transition: transform 0.5s linear; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
         
@@ -89,8 +91,8 @@
             <div class="about-limit" style="color:#0f172a;">What's New in v2.1:</div>
             <ul class="new-feature-list">
                 <li><b>Smart Colors:</b> Red (Stopped), Green (Moving).</li>
-                <li><b>Raw Data:</b> Exact "Since" time & "Last Updated" from server.</li>
-                <li><b>True Heading:</b> Accurate bus rotation from GPS.</li>
+                <li><b>Rich Info:</b> Driver & Speed details restored.</li>
+                <li><b>Click-to-Call:</b> Tap phone number to dial.</li>
                 <li><b>Stable Engine:</b> 5s cycle for smooth tracking.</li>
             </ul>
 
@@ -139,8 +141,7 @@
         BUSES.forEach(bus => {
             const item = document.createElement('div');
             item.className = 'bus-list-item';
-            const liveLink = `https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}`;
-            item.innerHTML = `<div class="bus-name">${bus.name}</div><div class="right-group"><a href="${liveLink}" target="_blank" class="mini-link" onclick="event.stopPropagation()">🔗 Track</a><div class="status-dot" id="dot-${bus.id}"></div></div>`;
+            item.innerHTML = `<div class="bus-name">${bus.name}</div><div class="right-group"><div class="status-dot" id="dot-${bus.id}"></div></div>`;
             item.onclick = () => focusBus(bus.id);
             listContainer.appendChild(item);
         });
@@ -189,54 +190,59 @@
                 if (data && data.root && data.root[0] && data.root[0][0]) {
                     const info = data.root[0][0];
                     const lat = parseFloat(info.latitude); const lng = parseFloat(info.longitude);
-                    let driver = info.driver_json ? (info.driver_json.name || "Unknown") : "Unknown";
-                    let mobile = info.driver_json ? (info.driver_json.mobile_no || "--") : "--";
-                    const speed = parseFloat(info.speed) || 0;
-
-                    let busColor = '#22c55e'; // Green
-                    let status = "Running";
-                    if (speed < 1) { busColor = '#ef4444'; status = "Stopped"; }
-                    if (speed > 40) busColor = '#a855f7'; // Purple
-
-                    // --- REAL SERVER DATA (v2.1) ---
-                    // 1. Duration (e.g. "122:17" -> "122h 17m")
-                    let durationText = "--";
-                    if (info.since) {
-                        durationText = info.since.replace(":", "h ") + "m";
+                    
+                    // --- RESTORED DATA ---
+                    let driverName = "Unknown Driver";
+                    let mobileNo = "--";
+                    if (info.driver_json) {
+                        // Sometimes driver_json is a string in raw data, sometimes an object
+                        let dObj = (typeof info.driver_json === 'string') ? JSON.parse(info.driver_json.replace(/'/g, '"')) : info.driver_json;
+                        driverName = dObj.name || "Unknown Driver";
+                        mobileNo = dObj.mobile_no || "--";
                     }
 
-                    // 2. Last Updated (e.g. "13-02-2026 09:42:57 AM")
-                    let lastUpdated = info.data_inserted_time || "--";
+                    const speed = parseFloat(info.speed) || 0;
+                    let busColor = '#22c55e'; // Green
+                    let status = "RUNNING";
+                    if (speed < 1) { busColor = '#ef4444'; status = "STOPPED"; }
+                    if (speed > 40) busColor = '#a855f7'; // Purple
 
-                    // 3. Exact Angle (0-360)
+                    // --- FORMATTING ---
+                    let durationText = info.since ? info.since.replace(":", "h ") + "m" : "--";
+                    let lastUpdated = info.data_inserted_time || "--";
                     let course = parseInt(info.angle) || 0;
 
                     if (lat > 0) {
                         const popup = `
-                            <div class="popup-header" style="background:${busColor}">🚌 ${bus.name}</div>
+                            <div class="popup-header" style="background:${busColor}">
+                                <span>🚌 ${bus.name}</span>
+                            </div>
                             <div class="popup-body">
-                                <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px; font-weight:bold; color:#334155;">
-                                    <span>${status}</span>
-                                    <span>Since ${durationText}</span>
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                    <span class="status-badge" style="background:${speed < 1 ? '#fee2e2' : '#dcfce7'}; color:${busColor};">
+                                        ${status}
+                                    </span>
+                                    <span style="font-size:12px; font-weight:700; color:#64748b;">
+                                        ⏳ Since ${durationText}
+                                    </span>
                                 </div>
-                                <div style="margin-bottom:8px; font-size:13px; font-weight:600; color:#334155;">
-                                    Speed: ${info.speed} km/h
+
+                                <div class="info-row"><span class="info-icon">👤</span> <b>${driverName}</b></div>
+                                <div class="info-row"><span class="info-icon">📞</span> <a href="tel:${mobileNo}" style="color:#2563eb; text-decoration:none; font-weight:700;">${mobileNo}</a></div>
+                                <div class="info-row"><span class="info-icon">🚀</span> <b>${speed} km/h</b></div>
+                                <div class="info-row"><span class="info-icon">📍</span> ${info.location || "Moving..."}</div>
+
+                                <div style="font-size:10px; color:#94a3b8; text-align:right; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:6px;">
+                                    Updated: ${lastUpdated}
                                 </div>
-                                <div style="margin-bottom:8px; font-size:12px; color:#64748b;">
-                                    Location: ${info.location || "Moving..."}
-                                </div>
-                                <div style="font-size:10px; color:#94a3b8; text-align:right; margin-top:5px; border-top:1px solid #eee; padding-top:5px;">
-                                    Last Updated At: ${lastUpdated}
-                                </div>
-                                <a href="https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}" target="_blank" class="track-link">🔗 Open Full Tracker</a>
+                                <a href="https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}" target="_blank" class="track-link">🔗 Open Full Live Tracker</a>
                             </div>`;
                         
                         const svgString = getBusSVG(busColor);
                         const busImgSrc = "data:image/svg+xml;base64," + btoa(svgString);
 
-                        let iconClass = 'custom-bus-icon';
                         const customIcon = L.divIcon({ 
-                            className: iconClass, 
+                            className: 'custom-bus-icon', 
                             html: `<div class="bus-icon-wrapper"><img src="${busImgSrc}" class="bus-img-top" id="img-${bus.id}" style="transform: rotate(${course}deg);"></div>`, 
                             iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -20] 
                         });
@@ -252,7 +258,7 @@
                         return true;
                     }
                 }
-            } catch (e) { } return false;
+            } catch (e) { console.log(e); } return false;
         }
 
         async function updateFleet() {
