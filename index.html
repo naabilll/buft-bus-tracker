@@ -68,12 +68,12 @@
         .about-credits { margin-top: 15px; font-size: 12px; color: #64748b; font-weight: 500; border-top: 1px solid #cbd5e1; padding-top: 10px; }
         .visitor-text { font-size: 11px; color: #94a3b8; margin-top: 5px; font-weight: 600; }
         .new-feature-list { list-style: none; padding: 0; margin: 5px 0; }
-        .new-feature-list li { padding-left: 20px; position: relative; margin-bottom: 4px; font-size: 12px; }
+        .new-feature-list li { padding-left: 20px; position: relative; margin-bottom: 6px; font-size: 12px; line-height: 1.4; }
         .new-feature-list li:before { content: '✨'; position: absolute; left: 0; top: 0; }
     </style>
 </head>
 <body>
-    <div id="floating-night-notice" class="floating-notice">🌙 Service Paused (Night) - Resumes 5:00 AM</div>
+    <div id="floating-night-notice" class="floating-notice">🌙 Service Paused (Night) - Resumes 6:30 AM Morning</div>
     <button class="menu-btn" onclick="toggleSidebar()">☰</button>
 
     <div class="sidebar" id="sidebar">
@@ -87,23 +87,18 @@
         
         <div class="bus-list-item about-toggle-btn" onclick="toggleAbout()">ℹ️ About</div>
         <div id="about-box" class="about-content">
-            <div class="about-title">BUFT Unified Bus Tracker <span style="font-size:12px; background:#2563eb; color:white; padding:2px 6px; border-radius:4px; vertical-align:middle;">v2.2</span></div>
-            <p style="margin: 0 0 10px 0;">A comprehensive, student-led platform designed to modernize university transportation.</p>
+            <div class="about-title">BUFT Unified Bus Tracker <span style="font-size:12px; background:#2563eb; color:white; padding:2px 6px; border-radius:4px; vertical-align:middle;">v2.3</span></div>
+            <p style="margin: 0 0 10px 0;">A comprehensive student-led idea designed to modernize University transportation.</p>
             
-            <div class="about-limit" style="color:#0f172a;">What's New in v2.2:</div>
+            <div class="about-limit" style="color:#0f172a;">Key Features:</div>
             <ul class="new-feature-list">
-                <li><b>Time Sync:</b> Corrected 1-hour server lag.</li>
-                <li><b>Smart Colors:</b> Red (Stopped), Green (Moving).</li>
-                <li><b>Rich Info:</b> Driver, Speed & Phone restored.</li>
-                <li><b>Click-to-Call:</b> Tap phone number to dial.</li>
+                <li><b>Real-Time Map Tracking:</b> Instantly see the exact, live location of all university buses on an interactive map.</li>
+                <li><b>Route Identification:</b> Easily find which bus is heading to your destination (e.g., Mirpur, Tongi, Azampur, etc.) by tapping the bus icons.</li>
+                <li><b>Live Status & Speed:</b> Check if your bus is currently moving, stopped, or inactive, along with its current speed in km/h.</li>
+                <li><b>Driver Information:</b> View the assigned driver's name and contact information (if available) directly from the map.</li>
+                <li><b>Mobile-Optimized:</b> Designed to work smoothly on your smartphone so you can track your ride while on the go.</li>
             </ul>
 
-            <div class="about-limit">⚠️ System Status:</div>
-            <ul style="padding-left: 15px; margin: 5px 0; font-size: 12px;">
-                <li><b>Server Sleep:</b> First load takes ~60s (Free Tier).</li>
-                <li><b>Real-Time:</b> GPS updates every 5 seconds.</li>
-            </ul>
-            
             <div class="about-credits">Developed By: <b>Shazzad Hossain Nabil (TE_221)</b> <br>Assisted by: <b>Google Gemini AI</b><div id="visitor-count" class="visitor-text">Total Visitors: ...</div></div>
         </div>
     </div>
@@ -121,40 +116,34 @@
         L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'] }).addTo(map);
         const SERVER = "https://bus-server-lr2x.onrender.com"; 
 
-const BUSES = [
-    { name: "Bus 1: Islampur", id: "351072", imei: "863051061903687" }, // OK
-    { name: "Bus 2: Shia Masjid", id: "351073", imei: "863051061866041" }, // OK
-    { name: "Bus 3: Azampur", id: "351074", imei: "863051061865993" }, // OK
-    { name: "Bus 4: Azampur", id: "351075", imei: "863051061875091" }, // OK
-    { name: "Bus 5: Pubail", id: "351076", imei: "863051061778279" }, // OK
-    { name: "Bus 6: Girls Hostel", id: "351077", imei: "863051061741285" }, // OK
-    
-    // The Shifted Block:
-    { name: "Bus 7: Stop", id: "351079", imei: "863051061737937" }, 
-    { name: "Bus 8: Azampur", id: "351080", imei: "863051062003073" },
-    { name: "Bus 9: Rampura", id: "351081", imei: "863051062002752" },
-    { name: "Bus 10: Azampur", id: "351082", imei: "863051062003610" },
-    { name: "Bus 11: Kalshi", id: "351083", imei: "863051061786785" },
-    { name: "Bus 12: Tongi", id: "351084", imei: "863051061778220" },
-    { name: "Bus 13: Zirani", id: "351085", imei: "863051062002935" },
-    { name: "Bus 14: Kamlapur", id: "351086", imei: "863051061866694" },
-    { name: "Bus 15: Shibbari", id: "351087", imei: "868184062272516" },
-    { name: "Bus 16: Mirpur-10", id: "351088", imei: "863051061741137" },
-    { name: "Bus 17: Commerce", id: "351089", imei: "868184062144723" },
-    { name: "Bus 18: Pallibiduth", id: "351090", imei: "863051061982632" },
-    { name: "Bus 23: Gulistan", id: "351091", imei: "863051062003990" },
-    { name: "Bus 24: Mirpur-14", id: "351092", imei: "863051061998133" },
-    
-    // Missing from BongoIOT's new sequence:
-    { name: "Bus 25: Newmarket", id: "351650", imei: "863051061775770" }, 
-    
-    // Back to normal:
-    { name: "Bus 26: Shafipur", id: "351093", imei: "863051061778014" }, // OK
-    { name: "BRTC 01", id: "351094", imei: "863051061867940" }, // OK
-    { name: "BRTC 02", id: "351095", imei: "863051062002919" }, // OK
-    { name: "BRTC 03", id: "351096", imei: "863051061786629" }, // OK
-    { name: "BRTC 04", id: "351097", imei: "863051061998075" }  // OK
-];
+        const BUSES = [
+            { name: "Bus 1: Islampur", id: "351072", imei: "863051061903687" },
+            { name: "Bus 2: Shia Masjid", id: "351073", imei: "863051061866041" },
+            { name: "Bus 3: Azampur", id: "351074", imei: "863051061865993" },
+            { name: "Bus 4: Azampur", id: "351075", imei: "863051061875091" },
+            { name: "Bus 5: Pubail", id: "351076", imei: "863051061778279" },
+            { name: "Bus 6: Girls Hostel", id: "351077", imei: "863051061741285" },
+            { name: "Bus 7: Stop", id: "351079", imei: "863051061737937" },
+            { name: "Bus 8: Azampur", id: "351080", imei: "863051062003073" },
+            { name: "Bus 9: Rampura", id: "351081", imei: "863051062002752" },
+            { name: "Bus 10: Azampur", id: "351082", imei: "863051062003610" },
+            { name: "Bus 11: Kalshi", id: "351083", imei: "863051061786785" },
+            { name: "Bus 12: Tongi", id: "351084", imei: "863051061778220" },
+            { name: "Bus 13: Zirani", id: "351085", imei: "863051062002935" },
+            { name: "Bus 14: Kamlapur", id: "351086", imei: "863051061866694" },
+            { name: "Bus 15: Shibbari", id: "351087", imei: "868184062272516" },
+            { name: "Bus 16: Mirpur-10", id: "351088", imei: "863051061741137" },
+            { name: "Bus 17: Commerce", id: "351089", imei: "868184062144723" },
+            { name: "Bus 18: Pallibiduth", id: "351090", imei: "863051061982632" },
+            { name: "Bus 23: Gulistan", id: "351091", imei: "863051062003990" },
+            { name: "Bus 24: Mirpur-14", id: "351092", imei: "863051061998133" },
+            { name: "Bus 25: Newmarket", id: "351650", imei: "863051061775770" },
+            { name: "Bus 26: Shafipur", id: "351093", imei: "863051061778014" },
+            { name: "BRTC 01", id: "351094", imei: "863051061867940" },
+            { name: "BRTC 02", id: "351095", imei: "863051062002919" },
+            { name: "BRTC 03", id: "351096", imei: "863051061786629" },
+            { name: "BRTC 04", id: "351097", imei: "863051061998075" }
+        ];
 
         const markers = {}; let userMarker = null;
 
@@ -366,9 +355,3 @@ const BUSES = [
     </script>
 </body>
 </html>
-
-
-
-
-
-
