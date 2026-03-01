@@ -246,10 +246,24 @@
                     }
 
                     const speed = parseFloat(info.speed) || 0;
-                    let busColor = '#22c55e'; 
-                    let status = "Running";
-                    if (speed < 1) { busColor = '#ef4444'; status = "Stopped"; }
-                    if (speed > 40) busColor = '#a855f7'; 
+                    
+                    let status = info.sts || "Unknown"; 
+                    let busColor = '#64748b'; 
+                    let badgeBg = '#f1f5f9';
+
+                    if (status === "Running") {
+                        busColor = speed > 40 ? '#a855f7' : '#22c55e'; 
+                        badgeBg = speed > 40 ? '#f3e8ff' : '#dcfce7';
+                    } else if (status === "Stopped") {
+                        busColor = '#ef4444'; 
+                        badgeBg = '#fee2e2';
+                    } else if (status === "Idle") {
+                        busColor = '#f59e0b'; 
+                        badgeBg = '#fef3c7';
+                    } else if (status === "Inactive") {
+                        busColor = '#94a3b8'; 
+                        badgeBg = '#f8fafc';
+                    }
 
                     let durationText = info.since ? info.since.replace(":", "h ") + "m" : "--";
                     let lastUpdated = fixTime(info.data_inserted_time);
@@ -262,7 +276,7 @@
                             </div>
                             <div class="popup-body">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                                    <span class="status-badge" style="background:${speed < 1 ? '#fee2e2' : '#dcfce7'}; color:${busColor};">
+                                    <span class="status-badge" style="background:${badgeBg}; color:${busColor};">
                                         ${status}
                                     </span>
                                     <span style="font-size:12px; font-weight:700; color:#64748b;">
