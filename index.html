@@ -121,22 +121,34 @@
         L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'] }).addTo(map);
         const SERVER = "https://bus-server-lr2x.onrender.com"; 
 
-        const BUSES = [
-            { name: "Bus 1: Islampur", id: "344928", imei: "863051061903687" }, { name: "Bus 2: Shia Masjid", id: "344929", imei: "863051061866041" },
-            { name: "Bus 3: Azampur", id: "344930", imei: "863051061865993" }, { name: "Bus 4: Azampur", id: "351075", imei: "863051061875091" },
-            { name: "Bus 5: Pubail", id: "344933", imei: "863051061778279" }, { name: "Bus 6: Girls Hostel", id: "344934", imei: "863051061741285" },
-            { name: "Bus 7: Stop", id: "344935", imei: "863051061737937" }, { name: "Bus 8: Azampur", id: "344936", imei: "863051062003073" },
-            { name: "Bus 9: Rampura", id: "344937", imei: "863051062002752" }, { name: "Bus 10: Azampur", id: "344938", imei: "863051062003610" },
-            { name: "Bus 11: Kalshi", id: "344939", imei: "863051061786785" }, { name: "Bus 12: Tongi", id: "344940", imei: "863051061778220" },
-            { name: "Bus 13: Zirani", id: "344941", imei: "863051062002935" }, { name: "Bus 14: Kamlapur", id: "344942", imei: "863051061866694" },
-            { name: "Bus 15: Shibbari", id: "344943", imei: "868184062272516" }, { name: "Bus 16: Mirpur-10", id: "344944", imei: "863051061741137" },
-            { name: "Bus 17: Commerce", id: "344945", imei: "868184062144723" }, { name: "Bus 18: Pallibiduth", id: "344946", imei: "863051061982632" },
-            { name: "Bus 23: Gulistan", id: "344947", imei: "863051062003990" }, { name: "Bus 24: Mirpur-14", id: "344948", imei: "863051061998133" },
-            { name: "Bus 25: Newmarket", id: "344950", imei: "863051061775770" }, { name: "Bus 26: Shafipur", id: "344951", imei: "863051061778014" },
-            { name: "BRTC 01", id: "344952", imei: "863051061867940" }, { name: "BRTC 02", id: "344953", imei: "863051062002919" },
-            { name: "BRTC 03", id: "344955", imei: "863051061786629" }, { name: "BRTC 04", id: "344956", imei: "863051061998075" }
-        ];
-
+const BUSES = [
+    { name: "Bus 1: Islampur", id: "351071", imei: "863051061903687" },
+    { name: "Bus 2: Shia Masjid", id: "351072", imei: "863051061866041" },
+    { name: "Bus 3: Azampur", id: "351073", imei: "863051061865993" },
+    { name: "Bus 4: Azampur", id: "351075", imei: "863051061875091" },
+    { name: "Bus 5: Pubail", id: "351076", imei: "863051061778279" },
+    { name: "Bus 6: Girls Hostel", id: "351077", imei: "863051061741285" },
+    { name: "Bus 7: Stop", id: "351078", imei: "863051061737937" },
+    { name: "Bus 8: Azampur", id: "351079", imei: "863051062003073" },
+    { name: "Bus 9: Rampura", id: "351080", imei: "863051062002752" },
+    { name: "Bus 10: Azampur", id: "351081", imei: "863051062003610" },
+    { name: "Bus 11: Kalshi", id: "351082", imei: "863051061786785" },
+    { name: "Bus 12: Tongi", id: "351083", imei: "863051061778220" },
+    { name: "Bus 13: Zirani", id: "351084", imei: "863051062002935" },
+    { name: "Bus 14: Kamlapur", id: "351085", imei: "863051061866694" },
+    { name: "Bus 15: Shibbari", id: "351086", imei: "868184062272516" },
+    { name: "Bus 16: Mirpur-10", id: "351087", imei: "863051061741137" },
+    { name: "Bus 17: Commerce", id: "351088", imei: "868184062144723" },
+    { name: "Bus 18: Pallibiduth", id: "351089", imei: "863051061982632" },
+    { name: "Bus 23: Gulistan", id: "351090", imei: "863051062003990" },
+    { name: "Bus 24: Mirpur-14", id: "351091", imei: "863051061998133" },
+    { name: "Bus 25: Newmarket", id: "351093", imei: "863051061775770" },
+    { name: "Bus 26: Shafipur", id: "351094", imei: "863051061778014" },
+    { name: "BRTC 01", id: "351095", imei: "863051061867940" },
+    { name: "BRTC 02", id: "351096", imei: "863051062002919" },
+    { name: "BRTC 03", id: "351098", imei: "863051061786629" },
+    { name: "BRTC 04", id: "351099", imei: "863051061998075" }
+];
         const markers = {}; let userMarker = null;
 
         const listContainer = document.getElementById('bus-list-container');
@@ -347,4 +359,5 @@
     </script>
 </body>
 </html>
+
 
