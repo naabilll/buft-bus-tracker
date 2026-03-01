@@ -190,16 +190,14 @@
             }, () => { alert("Enable location."); btn.innerHTML = "❌ Denied"; });
         }
 
-        // --- TIME CORRECTION FUNCTION ---
         function fixTime(timeStr) {
             if (!timeStr || timeStr === "--") return "--";
             try {
-                // Parse "13-02-2026 09:42:57 AM"
-                const parts = timeStr.split(/[- :]/); // Splits by -, space, or :
+                const parts = timeStr.split(/[- :]/); 
                 if (parts.length < 6) return timeStr;
 
                 let day = parseInt(parts[0]);
-                let month = parseInt(parts[1]) - 1; // JS months are 0-11
+                let month = parseInt(parts[1]) - 1; 
                 let year = parseInt(parts[2]);
                 let hours = parseInt(parts[3]);
                 let minutes = parseInt(parts[4]);
@@ -210,15 +208,12 @@
                 if (ampm === "AM" && hours === 12) hours = 0;
 
                 let date = new Date(year, month, day, hours, minutes, seconds);
-                
-                // --- THE FIX: ADD 1 HOUR ---
                 date.setHours(date.getHours() + 1);
 
-                // Format back to string
                 let h = date.getHours();
                 const a = h >= 12 ? 'PM' : 'AM';
                 h = h % 12;
-                h = h ? h : 12; // the hour '0' should be '12'
+                h = h ? h : 12; 
                 let m = date.getMinutes().toString().padStart(2, '0');
                 let s = date.getSeconds().toString().padStart(2, '0');
                 let d = date.getDate().toString().padStart(2, '0');
@@ -227,7 +222,7 @@
 
                 return `${d}-${mo}-${yStr} ${h}:${m}:${s} ${a}`;
             } catch(e) {
-                return timeStr; // Fallback if parsing fails
+                return timeStr; 
             }
         }
 
@@ -242,7 +237,6 @@
                     const info = data.root[0][0];
                     const lat = parseFloat(info.latitude); const lng = parseFloat(info.longitude);
                     
-                    // --- DRIVER & EMOJI DATA ---
                     let driverName = "Unknown";
                     let mobileNo = "--";
                     if (info.driver_json) {
@@ -252,17 +246,13 @@
                     }
 
                     const speed = parseFloat(info.speed) || 0;
-                    let busColor = '#22c55e'; // Green
+                    let busColor = '#22c55e'; 
                     let status = "Running";
                     if (speed < 1) { busColor = '#ef4444'; status = "Stopped"; }
-                    if (speed > 40) busColor = '#a855f7'; // Purple
+                    if (speed > 40) busColor = '#a855f7'; 
 
-                    // --- TIME & DURATION ---
                     let durationText = info.since ? info.since.replace(":", "h ") + "m" : "--";
-                    
-                    // Apply Time Fix (+1 Hour)
                     let lastUpdated = fixTime(info.data_inserted_time);
-                    
                     let course = parseInt(info.angle) || 0;
 
                     if (lat > 0) {
@@ -347,6 +337,17 @@
                 document.getElementById('night-notice-sidebar').style.display = 'none';
             }
         }
+
+        // --- 10 SECOND ALARM SYSTEM ---
+        let hasAlerted = false;
+        setTimeout(() => {
+            const activeCount = document.querySelectorAll('.status-dot.active').length;
+            if (activeCount === 0 && !hasAlerted) {
+                hasAlerted = true;
+                console.log("🚨 10s passed with 0 buses. Pinging server alarm...");
+                fetch(`${SERVER}/send-alert`).catch(e => console.log("Alarm Error:", e));
+            }
+        }, 10000); // 10 seconds
 
         checkServerHours();
         setInterval(checkServerHours, 60000);
