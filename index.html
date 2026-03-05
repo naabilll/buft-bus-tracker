@@ -107,7 +107,7 @@
         .user-loc-dot {
             width: 16px; height: 16px; background-color: #3b82f6;
             border: 3px solid white; border-radius: 50%;
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.8); position: relative;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.8); position: relative; z-index: 2;
         }
         .user-loc-dot::after {
             content: ''; position: absolute;
@@ -253,9 +253,30 @@
             </svg>`;
         }
 
-        // --- LIVE USER LOCATION (BLUE DOT) ---
+        // --- LIVE USER LOCATION (BLUE DOT + COMPASS BEAM) ---
         let watchId = null;
+        let orientationHandler = null;
         
+        function handleOrientation(event) {
+            let compassHeading = null;
+            if (event.webkitCompassHeading) {
+                // For iOS devices
+                compassHeading = event.webkitCompassHeading;
+            } else if (event.absolute !== false && event.alpha !== null) {
+                // For Android devices
+                compassHeading = 360 - event.alpha; 
+            }
+
+            if (compassHeading !== null) {
+                const wrapper = document.getElementById('user-direction-wrapper');
+                const beam = document.getElementById('user-direction-beam');
+                if (wrapper && beam) {
+                    beam.style.display = 'block'; // Show beam once we get valid compass data
+                    wrapper.style.transform = `rotate(${compassHeading}deg)`;
+                }
+            }
+        }
+
         function findUser() {
             if (!navigator.geolocation) { alert("GPS not supported."); return; }
             const btn = document.querySelector('.loc-btn');
@@ -264,6 +285,11 @@
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
+                if (orientationHandler) {
+                    window.removeEventListener('deviceorientationabsolute', orientationHandler);
+                    window.removeEventListener('deviceorientation', orientationHandler);
+                    orientationHandler = null;
+                }
                 if(userMarker) { map.removeLayer(userMarker); userMarker = null; }
                 btn.innerHTML = "<span>📍</span> Locate Me";
                 btn.style.background = "#2563eb"; // Back to blue
@@ -272,10 +298,21 @@
 
             btn.innerHTML = "📡 Connecting GPS...";
             
+            // The new icon with the hidden directional beam
+            const blueIconHtml = `
+            <div id="user-direction-wrapper" style="position:relative; width:16px; height:16px; transition: transform 0.1s linear;">
+                <div id="user-direction-beam" style="
+                    position: absolute; width: 60px; height: 60px; top: -45px; left: -22px;
+                    background: radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.4) 0%, transparent 60%);
+                    clip-path: polygon(50% 100%, 15% 0, 85% 0); display: none;">
+                </div>
+                <div class="user-loc-dot"></div>
+            </div>`;
+
             const blueIcon = L.divIcon({
                 className: 'custom-user-dot',
-                html: '<div class="user-loc-dot"></div>',
-                iconSize: [16, 16], iconAnchor: [8, 8], popupAnchor: [0, -10]
+                html: blueIconHtml,
+                iconSize: [16, 16], iconAnchor: [8, 8]
             });
 
             // Start actively watching location
@@ -284,10 +321,22 @@
                 const lng = position.coords.longitude;
 
                 if (userMarker) {
-                    userMarker.setLatLng([lat, lng]); // Move marker silently as you walk
+                    userMarker.setLatLng([lat, lng]); 
                 } else {
-                    userMarker = L.marker([lat, lng], {icon: blueIcon}).addTo(map).bindPopup("<b>📍 You are here</b>").openPopup();
-                    map.setView([lat, lng], 16); // Only snap the camera to the user on the very first ping
+                    // Removed the .bindPopup() entirely!
+                    userMarker = L.marker([lat, lng], {icon: blueIcon}).addTo(map);
+                    map.setView([lat, lng], 16); 
+                    
+                    // Request Compass Permissions & Listeners
+                    orientationHandler = handleOrientation;
+                    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                        DeviceOrientationEvent.requestPermission().then(permissionState => {
+                            if (permissionState === 'granted') { window.addEventListener('deviceorientation', orientationHandler); }
+                        }).catch(console.error);
+                    } else {
+                        window.addEventListener('deviceorientationabsolute', orientationHandler);
+                        window.addEventListener('deviceorientation', orientationHandler); // Fallback
+                    }
                 }
                 
                 btn.innerHTML = "<span>🎯</span> Tracking Active";
@@ -296,7 +345,7 @@
                 alert("Please enable location permissions in your browser."); 
                 btn.innerHTML = "❌ Denied"; 
                 btn.style.background = "#ef4444";
-            }, { enableHighAccuracy: true, maximumAge: 0 }); // Force high accuracy GPS
+            }, { enableHighAccuracy: true, maximumAge: 0 }); 
         }
 
         function fixTime(timeStr) {
