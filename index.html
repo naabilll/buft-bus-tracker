@@ -12,7 +12,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BUFT Bus Tracker</title>
+    <title>BUFT Bus Tracker V3.0</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
@@ -20,8 +20,8 @@
 
     <style>
         * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background: #f0f2f5; overflow: hidden; }
-        #map { height: 100vh; width: 100%; z-index: 1; }
+        body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background: #f0f2f5; overflow: hidden; transition: background 0.3s; }
+        #map { height: 100vh; width: 100%; z-index: 1; background: #f0f2f5; }
 
         .ghost-bus img { filter: grayscale(100%) opacity(0.5); }
 
@@ -30,23 +30,25 @@
             width: 260px; background: #ffffff; padding: 15px;
             border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             z-index: 1000; display: flex; flex-direction: column; align-items: center;
+            transition: background 0.3s, color 0.3s;
         }
         .header-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
         .live-badge { width: 10px; height: 10px; background: #ef4444; border-radius: 50%; animation: pulse-red 2s infinite; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-        h2 { margin: 0; color: #0f172a; font-size: 18px; font-weight: 800; }
-        #status-text { font-size: 13px; color: #64748b; font-weight: 600; background: #f1f5f9; padding: 6px 12px; border-radius: 15px; margin-top: 4px; text-align: center; line-height: 1.4; }
+        h2 { margin: 0; color: #0f172a; font-size: 18px; font-weight: 800; transition: color 0.3s; }
+        #status-text { font-size: 13px; color: #64748b; font-weight: 600; background: #f1f5f9; padding: 6px 12px; border-radius: 15px; margin-top: 4px; text-align: center; line-height: 1.4; transition: background 0.3s, color 0.3s; }
         .loc-btn { margin-top: 10px; width: 100%; padding: 10px; background: #2563eb; color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.3s; }
 
-        .menu-btn { position: absolute; top: 20px; left: 20px; background: white; border: none; padding: 12px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-size: 20px; cursor: pointer; z-index: 1001; }
-        .sidebar { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background: white; z-index: 9999; transition: left 0.3s ease; box-shadow: 5px 0 25px rgba(0,0,0,0.1); padding: 20px; overflow-y: auto; }
+        .menu-btn { position: absolute; top: 20px; left: 20px; background: white; border: none; padding: 12px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-size: 20px; cursor: pointer; z-index: 1001; transition: background 0.3s, color 0.3s; }
+        .sidebar { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background: white; z-index: 9999; transition: left 0.3s ease, background 0.3s; box-shadow: 5px 0 25px rgba(0,0,0,0.1); padding: 20px; overflow-y: auto; }
         .sidebar.open { left: 0; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
-        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; transition: border-color 0.3s; }
+        .sidebar-header h2 { transition: color 0.3s; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; transition: color 0.3s; }
         
-        .bus-list-item { padding: 12px; margin-bottom: 8px; background: #f8fafc; border-radius: 10px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: space-between; }
+        .bus-list-item { padding: 12px; margin-bottom: 8px; background: #f8fafc; border-radius: 10px; cursor: pointer; transition: background 0.2s, color 0.3s; display: flex; align-items: center; justify-content: space-between; }
         .bus-list-item:hover { background: #e2e8f0; }
-        .bus-name { font-weight: 600; color: #334155; font-size: 14px; }
+        .bus-name { font-weight: 600; color: #334155; font-size: 14px; transition: color 0.3s; }
         .right-group { display: flex; align-items: center; gap: 8px; }
         .mini-link { font-size: 11px; color: #3b82f6; text-decoration: none; font-weight: 700; }
         .mini-link:hover { text-decoration: underline; }
@@ -62,19 +64,19 @@
         .leaflet-control-zoom { box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important; border: none !important; }
 
         /* POPUP STYLING - REFINED */
-        .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: background 0.3s; }
         .leaflet-popup-content { margin: 0; width: 260px !important; }
         .popup-header { color: white; padding: 12px 15px; font-weight: 800; font-size: 15px; }
-        .popup-body { padding: 15px; background: white; font-family: 'Outfit', sans-serif; }
-        .info-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 13px; color: #334155; }
+        .popup-body { padding: 15px; background: white; font-family: 'Outfit', sans-serif; transition: background 0.3s; }
+        .info-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 13px; color: #334155; transition: color 0.3s; }
         .info-icon { width: 22px; text-align: center; margin-right: 8px; font-size: 14px; }
         .status-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        .track-link { display: block; margin-top: 12px; text-align: center; background: #e2e8f0; color: #0f172a; padding: 10px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; transition: background 0.2s; }
+        .track-link { display: block; margin-top: 12px; text-align: center; background: #e2e8f0; color: #0f172a; padding: 10px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; transition: background 0.2s, color 0.3s; }
         
         /* FIX VISIBILITY OF LEAFLET CLOSE 'X' BUTTON */
         .leaflet-container a.leaflet-popup-close-button {
             color: #ffffff !important;
-            background: rgba(0, 0, 0, 0.3) !important;
+            background: rgba(0, 0, 0, 0.4) !important;
             border-radius: 50%;
             width: 26px !important;
             height: 26px !important;
@@ -88,19 +90,19 @@
             text-decoration: none;
             transition: background 0.2s;
         }
-        .leaflet-container a.leaflet-popup-close-button:hover { background: rgba(0, 0, 0, 0.5) !important; color: white !important; }
+        .leaflet-container a.leaflet-popup-close-button:hover { background: rgba(0, 0, 0, 0.7) !important; color: white !important; }
         
         .bus-icon-wrapper { position: relative; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; } 
         .bus-img-top { width: 34px; height: 60px; transition: transform 0.5s linear; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
         
         .about-toggle-btn { margin-top: 15px; background: #f8fafc; color: #334155; font-weight: 600; font-size: 14px; border: 1px solid #e2e8f0; }
-        .about-content { display: none; margin-top: 10px; padding: 15px; background: #f1f5f9; border-radius: 8px; font-size: 13px; color: #475569; line-height: 1.6; }
-        .about-title { font-weight: 700; color: #0f172a; margin-bottom: 8px; font-size: 15px; }
-        .about-limit { margin-top: 12px; font-weight: 600; color: #ef4444; font-size: 13px; }
+        .about-content { display: none; margin-top: 10px; padding: 15px; background: #f1f5f9; border-radius: 8px; font-size: 13px; color: #475569; line-height: 1.6; transition: background 0.3s; }
+        .about-title { font-weight: 700; color: #0f172a; margin-bottom: 8px; font-size: 15px; transition: color 0.3s; }
+        .about-limit { margin-top: 12px; font-weight: 600; color: #ef4444; font-size: 13px; transition: color 0.3s; }
         .about-credits { margin-top: 15px; font-size: 12px; color: #64748b; font-weight: 500; border-top: 1px solid #cbd5e1; padding-top: 10px; }
         .visitor-text { font-size: 11px; color: #94a3b8; margin-top: 5px; font-weight: 600; }
         .new-feature-list { list-style: none; padding: 0; margin: 5px 0; }
-        .new-feature-list li { padding-left: 20px; position: relative; margin-bottom: 6px; font-size: 12px; line-height: 1.4; }
+        .new-feature-list li { padding-left: 20px; position: relative; margin-bottom: 6px; font-size: 12px; line-height: 1.4; transition: color 0.3s; }
         .new-feature-list li:before { content: '✨'; position: absolute; left: 0; top: 0; }
 
         /* LIVE USER BLUE DOT CSS */
@@ -136,6 +138,34 @@
         .error-popup-close {
             margin-top: 15px; color: #94a3b8; font-size: 12px; cursor: pointer; font-weight: 600; display: inline-block; padding: 5px;
         }
+
+        /* --- V3.0 DARK MODE CSS --- */
+        body.dark-mode { background: #0f172a; }
+        /* Map Color Shift */
+        body.dark-mode .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+        /* UI Elements */
+        body.dark-mode .dashboard { background: #1e293b; color: #f8fafc; }
+        body.dark-mode .dashboard h2 { color: #f8fafc; }
+        body.dark-mode #status-text { background: #334155; color: #cbd5e1; }
+        body.dark-mode .menu-btn { background: #1e293b; color: #f8fafc; }
+        body.dark-mode .sidebar { background: #0f172a; border-right: 1px solid #334155; }
+        body.dark-mode .sidebar-header { border-bottom: 2px solid #1e293b; }
+        body.dark-mode .sidebar-header h2 { color: #f8fafc; }
+        body.dark-mode .close-btn { color: #f8fafc; }
+        body.dark-mode .bus-list-item { background: #1e293b; color: #cbd5e1; }
+        body.dark-mode .bus-list-item:hover { background: #334155; }
+        body.dark-mode .bus-name { color: #f8fafc; }
+        body.dark-mode .about-toggle-btn { background: #1e293b; color: #f8fafc; border-color: #334155; }
+        body.dark-mode .about-content { background: #1e293b; color: #cbd5e1; }
+        body.dark-mode .about-title { color: #f8fafc; }
+        body.dark-mode .about-limit { color: #cbd5e1; }
+        body.dark-mode .new-feature-list li { color: #cbd5e1; }
+        /* Popup Boxes in Dark Mode */
+        body.dark-mode .leaflet-popup-content-wrapper { background: #1e293b; }
+        body.dark-mode .popup-body { background: #1e293b; color: #cbd5e1; }
+        body.dark-mode .info-row { color: #cbd5e1; }
+        body.dark-mode .track-link { background: #334155; color: #f8fafc; }
+        body.dark-mode .updated-text { border-top: 1px solid #334155 !important; }
     </style>
 </head>
 <body>
@@ -148,12 +178,17 @@
             <button class="close-btn" onclick="toggleSidebar()">×</button>
         </div>
         <div id="night-notice-sidebar">🌙 <b>Service Paused</b><br>Server is offline from 9:30 PM to 6:30 AM.</div>
+        
+        <div class="bus-list-item" style="margin-bottom: 15px; border: 1px solid #cbd5e1;" onclick="toggleDarkMode()">
+            <b id="dark-mode-text">🌙 Enable Dark Mode</b>
+        </div>
+
         <div id="bus-list-container"></div>
-        <div class="bus-list-item" style="margin-top: 15px; background: #e0f2fe; border: 1px solid #bae6fd;" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSdVfOC1bZcv20mZT5X52iGHORek0H8XPV-3HNhmwrcPr1O6_w/viewform?usp=header', '_blank')"><b>💬 Give Feedback</b></div>
+        <div class="bus-list-item" style="margin-top: 15px; background: #e0f2fe; border: 1px solid #bae6fd; color: #0f172a;" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSdVfOC1bZcv20mZT5X52iGHORek0H8XPV-3HNhmwrcPr1O6_w/viewform?usp=header', '_blank')"><b>💬 Give Feedback</b></div>
         
         <div class="bus-list-item about-toggle-btn" onclick="toggleAbout()">ℹ️ About</div>
         <div id="about-box" class="about-content">
-            <div class="about-title">BUFT Unified Bus Tracker <span style="font-size:12px; background:#2563eb; color:white; padding:2px 6px; border-radius:4px; vertical-align:middle;">v2.3</span></div>
+            <div class="about-title">BUFT Unified Bus Tracker <span style="font-size:12px; background:#2563eb; color:white; padding:2px 6px; border-radius:4px; vertical-align:middle;">V3.0</span></div>
             <p style="margin: 0 0 10px 0;">A comprehensive student-led idea designed to modernize University transportation.</p>
             
             <div class="about-limit" style="color:#0f172a;">Key Features:</div>
@@ -186,7 +221,8 @@
     </div>
 
     <script>
-        const map = L.map('map', {zoomControl: false}).setView([23.8741, 90.3992], 12);
+        // Removed attributionControl: false to delete "Leaflet" text
+        const map = L.map('map', {zoomControl: false, attributionControl: false}).setView([23.8741, 90.3992], 12);
         L.control.zoom({position: 'bottomright'}).addTo(map);
         L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'] }).addTo(map);
         const SERVER = "https://bus-server-lr2x.onrender.com"; 
@@ -231,8 +267,18 @@
             listContainer.appendChild(item);
         });
 
+        // --- UI TOGGLES ---
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function toggleAbout() { const box = document.getElementById('about-box'); box.style.display = (box.style.display === "block") ? "none" : "block"; }
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const text = document.getElementById('dark-mode-text');
+            if (document.body.classList.contains('dark-mode')) {
+                text.innerText = "☀️ Disable Dark Mode";
+            } else {
+                text.innerText = "🌙 Enable Dark Mode";
+            }
+        }
 
         function focusBus(id) {
             if (markers[id]) { const marker = markers[id]; map.flyTo(marker.getLatLng(), 15); marker.openPopup(); toggleSidebar(); } 
@@ -256,14 +302,22 @@
         // --- LIVE USER LOCATION (BLUE DOT + COMPASS BEAM) ---
         let watchId = null;
         let orientationHandler = null;
+        let currentRotation = 0; // Tracks rotation to prevent 360-degree snap glitch
         
+        // Math to prevent spinning backward when crossing 0 degrees
+        function getContinuousAngle(newAngle) {
+            let diff = newAngle - (currentRotation % 360);
+            if (diff > 180) diff -= 360;
+            if (diff < -180) diff += 360;
+            currentRotation += diff;
+            return currentRotation;
+        }
+
         function handleOrientation(event) {
             let compassHeading = null;
             if (event.webkitCompassHeading) {
-                // For iOS devices
                 compassHeading = event.webkitCompassHeading;
             } else if (event.absolute !== false && event.alpha !== null) {
-                // For Android devices
                 compassHeading = 360 - event.alpha; 
             }
 
@@ -271,8 +325,11 @@
                 const wrapper = document.getElementById('user-direction-wrapper');
                 const beam = document.getElementById('user-direction-beam');
                 if (wrapper && beam) {
-                    beam.style.display = 'block'; // Show beam once we get valid compass data
-                    wrapper.style.transform = `rotate(${compassHeading}deg)`;
+                    beam.style.display = 'block'; 
+                    let smoothAngle = getContinuousAngle(compassHeading);
+                    // Fast smooth transition
+                    wrapper.style.transition = "transform 0.15s ease-out";
+                    wrapper.style.transform = `rotate(${smoothAngle}deg)`;
                 }
             }
         }
@@ -281,7 +338,6 @@
             if (!navigator.geolocation) { alert("GPS not supported."); return; }
             const btn = document.querySelector('.loc-btn');
             
-            // If already tracking, click again to stop tracking
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
@@ -292,19 +348,19 @@
                 }
                 if(userMarker) { map.removeLayer(userMarker); userMarker = null; }
                 btn.innerHTML = "<span>📍</span> Locate Me";
-                btn.style.background = "#2563eb"; // Back to blue
+                btn.style.background = "#2563eb"; 
                 return;
             }
 
             btn.innerHTML = "📡 Connecting GPS...";
             
-            // The new icon with the hidden directional beam
+            // Re-designed highly visible compass beam
             const blueIconHtml = `
-            <div id="user-direction-wrapper" style="position:relative; width:16px; height:16px; transition: transform 0.1s linear;">
+            <div id="user-direction-wrapper" style="position:relative; width:16px; height:16px;">
                 <div id="user-direction-beam" style="
-                    position: absolute; width: 60px; height: 60px; top: -45px; left: -22px;
-                    background: radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.4) 0%, transparent 60%);
-                    clip-path: polygon(50% 100%, 15% 0, 85% 0); display: none;">
+                    position: absolute; width: 80px; height: 80px; top: -70px; left: -32px;
+                    background: radial-gradient(circle at 50% 100%, rgba(37, 99, 235, 0.7) 0%, rgba(37, 99, 235, 0) 70%);
+                    clip-path: polygon(50% 100%, 10% 0, 90% 0); display: none;">
                 </div>
                 <div class="user-loc-dot"></div>
             </div>`;
@@ -315,7 +371,6 @@
                 iconSize: [16, 16], iconAnchor: [8, 8]
             });
 
-            // Start actively watching location
             watchId = navigator.geolocation.watchPosition(position => {
                 const lat = position.coords.latitude; 
                 const lng = position.coords.longitude;
@@ -323,11 +378,9 @@
                 if (userMarker) {
                     userMarker.setLatLng([lat, lng]); 
                 } else {
-                    // Removed the .bindPopup() entirely!
-                    userMarker = L.marker([lat, lng], {icon: blueIcon}).addTo(map);
+                    userMarker = L.marker([lat, lng], {icon: blueIcon}).addTo(map); // No popup
                     map.setView([lat, lng], 16); 
                     
-                    // Request Compass Permissions & Listeners
                     orientationHandler = handleOrientation;
                     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                         DeviceOrientationEvent.requestPermission().then(permissionState => {
@@ -335,12 +388,12 @@
                         }).catch(console.error);
                     } else {
                         window.addEventListener('deviceorientationabsolute', orientationHandler);
-                        window.addEventListener('deviceorientation', orientationHandler); // Fallback
+                        window.addEventListener('deviceorientation', orientationHandler); 
                     }
                 }
                 
                 btn.innerHTML = "<span>🎯</span> Tracking Active";
-                btn.style.background = "#10b981"; // Turn button green
+                btn.style.background = "#10b981"; 
             }, () => { 
                 alert("Please enable location permissions in your browser."); 
                 btn.innerHTML = "❌ Denied"; 
@@ -447,7 +500,7 @@
                                 <div class="info-row"><span class="info-icon">🚀</span> <b>${speed} km/h</b></div>
                                 <div class="info-row"><span class="info-icon">📍</span> ${info.location || "Moving..."}</div>
 
-                                <div style="font-size:10px; color:#94a3b8; text-align:right; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:6px;">
+                                <div class="updated-text" style="font-size:10px; color:#94a3b8; text-align:right; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:6px;">
                                     Updated: ${lastUpdated}
                                 </div>
                                 <a href="https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}" target="_blank" class="track-link">🔗 Open Full Live Tracker</a>
@@ -496,7 +549,6 @@
             setTimeout(updateFleet, 5000); 
         }
 
-        // --- UNIFIED TIME CHECK FUNCTION ---
         function isNightTime() {
             const now = new Date();
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -524,14 +576,12 @@
                 console.log("🚨 10s passed with 0 buses. Pinging server alarm...");
                 fetch(`${SERVER}/send-alert`).catch(e => console.log("Alarm Error:", e));
                 
-                // Show the UI popup gimmick only if it is NOT night time
                 if (!isNightTime()) {
                     document.getElementById('error-popup').style.display = 'flex';
                 }
             }
-        }, 10000); // 10 seconds
+        }, 10000); 
 
-        // --- GIMMICK POPUP BUTTON FUNCTIONS ---
         function notifyDeveloperUI(btn) {
             btn.innerText = "✅ Notification Sent!";
             btn.style.background = "#22c55e";
