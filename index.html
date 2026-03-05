@@ -48,6 +48,10 @@
         .floating-notice { display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(254, 226, 226, 0.95); border: 2px solid #ef4444; color: #991b1b; padding: 12px 20px; border-radius: 50px; font-weight: 700; font-size: 13px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); z-index: 2000; text-align: center; white-space: nowrap; animation: pop-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes pop-up { from { transform: translateX(-50%) scale(0.8); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
 
+        /* LIFT ZOOM CONTROLS ON MOBILE */
+        .leaflet-bottom.leaflet-right { margin-bottom: 90px !important; }
+        .leaflet-control-zoom { box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important; border: none !important; }
+
         /* POPUP STYLING - REFINED */
         .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .leaflet-popup-content { margin: 0; width: 260px !important; }
@@ -57,6 +61,25 @@
         .info-icon { width: 22px; text-align: center; margin-right: 8px; font-size: 14px; }
         .status-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
         .track-link { display: block; margin-top: 12px; text-align: center; background: #e2e8f0; color: #0f172a; padding: 10px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; transition: background 0.2s; }
+        
+        /* FIX VISIBILITY OF LEAFLET CLOSE 'X' BUTTON */
+        .leaflet-container a.leaflet-popup-close-button {
+            color: #ffffff !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+            border-radius: 50%;
+            width: 26px !important;
+            height: 26px !important;
+            line-height: 26px !important;
+            text-align: center;
+            top: 10px !important;
+            right: 10px !important;
+            padding: 0 !important;
+            font-size: 16px !important;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .leaflet-container a.leaflet-popup-close-button:hover { background: rgba(0, 0, 0, 0.5) !important; color: white !important; }
         
         .bus-icon-wrapper { position: relative; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; } 
         .bus-img-top { width: 34px; height: 60px; transition: transform 0.5s linear; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
@@ -70,6 +93,26 @@
         .new-feature-list { list-style: none; padding: 0; margin: 5px 0; }
         .new-feature-list li { padding-left: 20px; position: relative; margin-bottom: 6px; font-size: 12px; line-height: 1.4; }
         .new-feature-list li:before { content: '✨'; position: absolute; left: 0; top: 0; }
+
+        /* TIMEOUT UI GIMMICK CSS */
+        .error-popup-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); z-index: 99999; justify-content: center; align-items: center;
+        }
+        .error-popup-box {
+            background: white; padding: 25px; border-radius: 18px; width: 85%; max-width: 320px;
+            text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); animation: pop-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .error-popup-title { color: #ef4444; font-size: 18px; font-weight: 800; margin-bottom: 10px; }
+        .error-popup-text { color: #475569; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+        .error-popup-btn {
+            background: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 12px;
+            font-weight: 700; width: 100%; cursor: pointer; transition: background 0.2s;
+        }
+        .error-popup-btn:active { background: #1d4ed8; }
+        .error-popup-close {
+            margin-top: 15px; color: #94a3b8; font-size: 12px; cursor: pointer; font-weight: 600; display: inline-block; padding: 5px;
+        }
     </style>
 </head>
 <body>
@@ -81,7 +124,7 @@
             <h2 style="font-size: 20px;">🚍 Bus List</h2>
             <button class="close-btn" onclick="toggleSidebar()">×</button>
         </div>
-        <div id="night-notice-sidebar">🌙 <b>Service Paused</b><br>Server is offline from 9:30 PM to 5 AM.</div>
+        <div id="night-notice-sidebar">🌙 <b>Service Paused</b><br>Server is offline from 9:30 PM to 6:30 AM.</div>
         <div id="bus-list-container"></div>
         <div class="bus-list-item" style="margin-top: 15px; background: #e0f2fe; border: 1px solid #bae6fd;" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSdVfOC1bZcv20mZT5X52iGHORek0H8XPV-3HNhmwrcPr1O6_w/viewform?usp=header', '_blank')"><b>💬 Give Feedback</b></div>
         
@@ -99,7 +142,16 @@
                 <li><b>Mobile-Optimized:</b> Designed to work smoothly on your smartphone so you can track your ride while on the go.</li>
             </ul>
 
-            <div class="about-credits">Developed By: <b>Shazzad Hossain Nabil (TE_221)</b> <br>Assisted by: <b>Google Gemini AI</b><div id="visitor-count" class="visitor-text">Total Visitors: ...</div></div>
+            <div class="about-credits">Developed By: <a href="https://www.facebook.com/NabilShazzad" target="_blank" style="color: #2563eb; text-decoration: none;"><b>Shazzad Hossain Nabil (TE_221)</b></a> <br>Assisted by: <b>Google Gemini AI</b><div id="visitor-count" class="visitor-text">Total Visitors: ...</div></div>
+        </div>
+    </div>
+
+    <div id="error-popup" class="error-popup-overlay">
+        <div class="error-popup-box">
+            <div class="error-popup-title">⚠️ Connection Timeout</div>
+            <div class="error-popup-text">No active buses detected. The main server might be asleep or experiencing an issue.</div>
+            <button class="error-popup-btn" onclick="notifyDeveloperUI(this)">Notify Developer</button>
+            <div class="error-popup-close" onclick="closeErrorPopup()">Dismiss</div>
         </div>
     </div>
 
@@ -338,12 +390,17 @@
             setTimeout(updateFleet, 5000); 
         }
 
-        function checkServerHours() {
+        // --- UNIFIED TIME CHECK FUNCTION ---
+        function isNightTime() {
             const now = new Date();
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
             const startNight = 21 * 60 + 30; // 9:30 PM
-            const endNight = 5 * 60; // 5:00 AM
-            if (currentMinutes >= startNight || currentMinutes < endNight) {
+            const endNight = 6 * 60 + 30;    // 6:30 AM
+            return currentMinutes >= startNight || currentMinutes < endNight;
+        }
+
+        function checkServerHours() {
+            if (isNightTime()) {
                 document.getElementById('floating-night-notice').style.display = 'block';
                 document.getElementById('night-notice-sidebar').style.display = 'block';
             } else {
@@ -352,7 +409,7 @@
             }
         }
 
-        // --- 10 SECOND ALARM SYSTEM ---
+        // --- 10 SECOND ALARM & GIMMICK UI ---
         let hasAlerted = false;
         setTimeout(() => {
             const activeCount = document.querySelectorAll('.status-dot.active').length;
@@ -360,8 +417,23 @@
                 hasAlerted = true;
                 console.log("🚨 10s passed with 0 buses. Pinging server alarm...");
                 fetch(`${SERVER}/send-alert`).catch(e => console.log("Alarm Error:", e));
+                
+                // Show the UI popup gimmick only if it is NOT night time
+                if (!isNightTime()) {
+                    document.getElementById('error-popup').style.display = 'flex';
+                }
             }
         }, 10000); // 10 seconds
+
+        // --- GIMMICK POPUP BUTTON FUNCTIONS ---
+        function notifyDeveloperUI(btn) {
+            btn.innerText = "✅ Notification Sent!";
+            btn.style.background = "#22c55e";
+            setTimeout(closeErrorPopup, 2000);
+        }
+        function closeErrorPopup() {
+            document.getElementById('error-popup').style.display = 'none';
+        }
 
         checkServerHours();
         setInterval(checkServerHours, 60000);
