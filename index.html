@@ -2,31 +2,29 @@
 <html lang="en">
 <head>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-R1EWC93EWM"></script>
-    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-R1EWC93EWM');</script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-R1EWC93EWM');
+    </script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <title>BUFT Bus Tracker V3.0</title>
-    <meta name="description" content="Real-time GPS tracking for BUFT University buses.">
-    <meta property="og:title" content="BUFT Bus Tracker V3.0">
-    <meta property="og:description" content="Live map tracking, speeds, and routes for all university buses.">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚌</text></svg>">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
 
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background: #f0f2f5; overflow: hidden; transition: background 0.3s; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        /* COMPACT DASHBOARD */
+        .ghost-bus img { filter: grayscale(100%) opacity(0.5); }
+
+        /* SMALLER DASHBOARD */
         .dashboard {
             position: absolute; top: 15px; right: 15px;
             background: #ffffff; padding: 12px 18px;
@@ -39,62 +37,82 @@
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         h2 { margin: 0; color: #0f172a; font-size: 16px; font-weight: 800; transition: color 0.3s; }
         #status-text { font-size: 12px; color: #64748b; font-weight: 700; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; transition: background 0.3s, color 0.3s; }
-        
         .loc-btn { margin-top: 8px; width: 100%; padding: 8px; background: #2563eb; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.3s; }
+
         .menu-btn { position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 12px 15px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); font-size: 20px; cursor: pointer; z-index: 1001; transition: background 0.3s, color 0.3s; }
         
-        /* SIDEBAR WITH SEARCH */
-        .sidebar { position: fixed; top: 0; left: -340px; width: 320px; height: 100%; background: white; z-index: 9999; transition: left 0.3s ease, background 0.3s; box-shadow: 5px 0 25px rgba(0,0,0,0.1); padding: 20px; overflow-y: auto; }
+        /* SIDEBAR */
+        .sidebar { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background: white; z-index: 9999; transition: left 0.3s ease, background 0.3s; box-shadow: 5px 0 25px rgba(0,0,0,0.1); padding: 20px; overflow-y: auto; }
         .sidebar.open { left: 0; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
-        .sidebar-header h2 { font-size: 20px; margin: 0; }
-        .header-actions { display: flex; gap: 15px; align-items: center; }
-        .icon-btn { background: none; border: none; font-size: 22px; cursor: pointer; padding: 0; color: #64748b; transition: color 0.3s; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; transition: border-color 0.3s; }
+        .sidebar-header h2 { transition: color 0.3s; margin: 0; font-size: 20px; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
         
-        #search-box { width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; font-family: 'Outfit'; font-weight: 600; margin-bottom: 15px; outline: none; transition: border-color 0.2s; }
+        /* EXPLICIT DARK MODE BUTTON */
+        #dark-mode-btn { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 20px; font-family: 'Outfit'; font-weight: 700; cursor: pointer; font-size: 12px; color: #334155; transition: 0.3s; }
+        #dark-mode-btn:hover { background: #e2e8f0; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; padding: 0; transition: color 0.3s; }
+        
+        #search-box { width: 100%; padding: 10px 15px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; font-family: 'Outfit'; font-weight: 600; margin-bottom: 15px; outline: none; transition: border-color 0.2s; }
         #search-box:focus { border-color: #3b82f6; }
 
-        /* DETAILED BUS LIST ITEMS */
-        .bus-list-item { padding: 12px; margin-bottom: 8px; background: #f8fafc; border-radius: 10px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: space-between; }
+        .bus-list-item { padding: 12px; margin-bottom: 8px; background: #f8fafc; border-radius: 10px; cursor: pointer; transition: background 0.2s, color 0.3s; display: flex; align-items: center; justify-content: space-between; }
         .bus-list-item:hover { background: #e2e8f0; }
-        .bus-info { display: flex; flex-direction: column; }
-        .bus-name { font-weight: 700; color: #334155; font-size: 14px; margin-bottom: 2px; }
-        .bus-subtext { font-size: 11px; color: #94a3b8; font-weight: 600; }
-        .status-dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; transition: background 0.3s; }
+        .bus-name { font-weight: 600; color: #334155; font-size: 14px; transition: color 0.3s; }
+        .right-group { display: flex; align-items: center; gap: 8px; }
+        .status-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; transition: 0.3s; }
+        .status-dot.active { box-shadow: 0 0 5px #22c55e; }
         
-        /* MAP ICON LABELS & CLUSTERS */
-        .bus-icon-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; } 
-        .bus-img-top { width: 32px; height: 56px; transition: transform 0.5s linear; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
-        .map-bus-label { background: rgba(15, 23, 42, 0.85); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; margin-top: -8px; z-index: 10; white-space: nowrap; }
-        .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background-color: rgba(37, 99, 235, 0.6); }
-        .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div { background-color: rgba(37, 99, 235, 0.9); color: white; font-family: 'Outfit'; font-weight: 700; }
-
-        /* LIFT ZOOM CONTROLS & ATTRIBUTION */
-        .leaflet-bottom.leaflet-right { margin-bottom: 30px !important; }
-        .leaflet-control-zoom { box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important; border: none !important; }
-        .leaflet-control-attribution { opacity: 0.5; font-size: 9px !important; }
-
-        /* CLEAN POPUP STYLING */
-        .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .leaflet-popup-content { margin: 0; width: 260px !important; }
-        .popup-header { color: white; padding: 12px 15px; font-weight: 800; font-size: 15px; }
-        .popup-body { padding: 15px; background: white; font-family: 'Outfit', sans-serif; }
-        .info-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 13px; color: #334155; }
-        .info-icon { width: 22px; text-align: center; margin-right: 8px; font-size: 14px; }
-        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        .track-link { display: block; margin-top: 12px; text-align: center; background: #2563eb; color: white; padding: 10px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; transition: background 0.2s; }
-        .leaflet-container a.leaflet-popup-close-button { color: #ffffff !important; background: rgba(0,0,0,0.4) !important; border-radius: 50%; width: 26px !important; height: 26px !important; line-height: 26px !important; text-align: center; top: 10px !important; right: 10px !important; padding: 0 !important; font-size: 16px !important; font-weight: bold; text-decoration: none; }
-        
-        #night-notice-sidebar { display: none; background: #fee2e2; color: #991b1b; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 15px; text-align: center; }
-        .floating-notice { display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(254, 226, 226, 0.95); border: 2px solid #ef4444; color: #991b1b; padding: 12px 20px; border-radius: 50px; font-weight: 700; font-size: 13px; z-index: 2000; text-align: center; white-space: nowrap; animation: pop-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #night-notice-sidebar { display: none; background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 15px; text-align: center; }
+        .floating-notice { display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(254, 226, 226, 0.95); border: 2px solid #ef4444; color: #991b1b; padding: 12px 20px; border-radius: 50px; font-weight: 700; font-size: 13px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); z-index: 2000; text-align: center; white-space: nowrap; animation: pop-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes pop-up { from { transform: translateX(-50%) scale(0.8); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
 
-        /* USER DOT CSS */
+        .leaflet-bottom.leaflet-right { margin-bottom: 90px !important; }
+        .leaflet-control-zoom { box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important; border: none !important; }
+
+        /* ORIGINAL POPUPS */
+        .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: background 0.3s; }
+        .leaflet-popup-content { margin: 0; width: 260px !important; }
+        .popup-header { color: white; padding: 12px 15px; font-weight: 800; font-size: 15px; }
+        .popup-body { padding: 15px; background: white; font-family: 'Outfit', sans-serif; transition: background 0.3s; }
+        .info-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 13px; color: #334155; transition: color 0.3s; }
+        .info-icon { width: 22px; text-align: center; margin-right: 8px; font-size: 14px; }
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .track-link { display: block; margin-top: 12px; text-align: center; background: #e2e8f0; color: #0f172a; padding: 10px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; transition: background 0.2s, color 0.3s; }
+        .leaflet-container a.leaflet-popup-close-button { color: #ffffff !important; background: rgba(0, 0, 0, 0.4) !important; border-radius: 50%; width: 26px !important; height: 26px !important; line-height: 26px !important; text-align: center; top: 10px !important; right: 10px !important; padding: 0 !important; font-size: 16px !important; font-weight: bold; text-decoration: none; transition: background 0.2s; }
+        .leaflet-container a.leaflet-popup-close-button:hover { background: rgba(0, 0, 0, 0.7) !important; color: white !important; }
+        
+        /* BUS ICONS WITH LABELS */
+        .bus-icon-wrapper { position: relative; width: 44px; height: 44px; display: flex; flex-direction: column; align-items: center; } 
+        .bus-img-top { width: 34px; height: 60px; transition: transform 0.5s linear; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+        .map-bus-label { background: rgba(15, 23, 42, 0.85); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; margin-top: -6px; z-index: 10; white-space: nowrap; transition: background 0.3s, color 0.3s; }
+        
+        /* ORIGINAL ABOUT SECTION */
+        .about-toggle-btn { margin-top: 15px; background: #f8fafc; color: #334155; font-weight: 600; font-size: 14px; border: 1px solid #e2e8f0; }
+        .about-content { display: none; margin-top: 10px; padding: 15px; background: #f1f5f9; border-radius: 8px; font-size: 13px; color: #475569; line-height: 1.6; transition: background 0.3s; }
+        .about-title { font-weight: 700; color: #0f172a; margin-bottom: 8px; font-size: 15px; transition: color 0.3s; }
+        .about-limit { margin-top: 12px; font-weight: 600; color: #ef4444; font-size: 13px; transition: color 0.3s; }
+        .about-credits { margin-top: 15px; font-size: 12px; color: #64748b; font-weight: 500; border-top: 1px solid #cbd5e1; padding-top: 10px; }
+        .visitor-text { font-size: 11px; color: #94a3b8; margin-top: 5px; font-weight: 600; }
+        .new-feature-list { list-style: none; padding: 0; margin: 5px 0; }
+        .new-feature-list li { padding-left: 20px; position: relative; margin-bottom: 6px; font-size: 12px; line-height: 1.4; transition: color 0.3s; }
+        .new-feature-list li:before { content: '✨'; position: absolute; left: 0; top: 0; }
+
+        /* LIVE USER BLUE DOT CSS */
         .user-loc-dot { width: 16px; height: 16px; background-color: #3b82f6; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(59, 130, 246, 0.8); position: relative; z-index: 2; }
         .user-loc-dot::after { content: ''; position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px; background: rgba(59, 130, 246, 0.4); border-radius: 50%; animation: pulse-blue 2s infinite; }
         @keyframes pulse-blue { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
 
-        /* DARK MODE CSS */
+        /* TIMEOUT UI GIMMICK CSS */
+        .error-popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 99999; justify-content: center; align-items: center; }
+        .error-popup-box { background: white; padding: 25px; border-radius: 18px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); animation: pop-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .error-popup-title { color: #ef4444; font-size: 18px; font-weight: 800; margin-bottom: 10px; }
+        .error-popup-text { color: #475569; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+        .error-popup-btn { background: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; transition: background 0.2s; }
+        .error-popup-btn:active { background: #1d4ed8; }
+        .error-popup-close { margin-top: 15px; color: #94a3b8; font-size: 12px; cursor: pointer; font-weight: 600; display: inline-block; padding: 5px; }
+
+        /* --- DARK MODE CSS --- */
         body.dark-mode { background: #0f172a; }
         body.dark-mode .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
         body.dark-mode .dashboard, body.dark-mode .sidebar, body.dark-mode .menu-btn { background: #1e293b; color: #f8fafc; }
@@ -102,35 +120,68 @@
         body.dark-mode #status-text, body.dark-mode .bus-list-item { background: #334155; color: #cbd5e1; }
         body.dark-mode .bus-list-item:hover { background: #475569; }
         body.dark-mode .sidebar-header { border-color: #334155; }
-        body.dark-mode .close-btn, body.dark-mode .icon-btn { color: #cbd5e1; }
+        body.dark-mode .close-btn { color: #f8fafc; }
+        body.dark-mode #dark-mode-btn { background: #334155; border-color: #475569; color: #f8fafc; }
         body.dark-mode #search-box { background: #0f172a; border-color: #334155; color: white; }
-        body.dark-mode .leaflet-popup-content-wrapper, body.dark-mode .popup-body { background: #1e293b; color: #cbd5e1; }
+        body.dark-mode .about-toggle-btn { background: #1e293b; color: #f8fafc; border-color: #334155; }
+        body.dark-mode .about-content { background: #1e293b; color: #cbd5e1; }
+        body.dark-mode .about-title { color: #f8fafc; }
+        body.dark-mode .about-limit { color: #cbd5e1; }
+        body.dark-mode .new-feature-list li { color: #cbd5e1; }
+        body.dark-mode .leaflet-popup-content-wrapper { background: #1e293b; }
+        body.dark-mode .popup-body { background: #1e293b; color: #cbd5e1; }
         body.dark-mode .info-row { color: #cbd5e1; }
+        body.dark-mode .track-link { background: #334155; color: #f8fafc; }
         body.dark-mode .map-bus-label { background: #ffffff; color: #0f172a; }
     </style>
 </head>
 <body>
-    <div id="floating-night-notice" class="floating-notice">🌙 Service Paused - Resumes 6:30 AM</div>
+    <div id="floating-night-notice" class="floating-notice">🌙 Service Paused (Night) - Resumes 6:30 AM Morning</div>
     <button class="menu-btn" onclick="toggleSidebar()">☰</button>
 
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h2>🚍 BUFT Fleet</h2>
+            <h2>🚍 Bus List</h2>
             <div class="header-actions">
-                <button class="icon-btn" onclick="toggleDarkMode()" id="dark-btn" title="Toggle Dark Mode">🌙</button>
-                <button class="icon-btn close-btn" onclick="toggleSidebar()">×</button>
+                <button id="dark-mode-btn" onclick="toggleDarkMode()">🌙 Dark</button>
+                <button class="close-btn" onclick="toggleSidebar()">×</button>
             </div>
         </div>
         
-        <input type="text" id="search-box" placeholder="Search bus name or route..." onkeyup="filterSidebar()">
+        <input type="text" id="search-box" placeholder="Search bus..." onkeyup="filterSidebar()">
         
         <div id="night-notice-sidebar">🌙 <b>Service Paused</b><br>Server is offline from 9:30 PM to 6:30 AM.</div>
-        
         <div id="bus-list-container">
-            <div style="text-align:center; padding: 20px; color: #94a3b8; font-weight: 600;">📡 Connecting to satellite...</div>
+            <div style="text-align:center; padding: 20px; color: #94a3b8; font-weight: 600;">📡 Connecting to network...</div>
         </div>
         
-        <div class="bus-list-item" style="margin-top: 15px; background: #e0f2fe; border: 1px solid #bae6fd; color: #0f172a;" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSdVfOC1bZcv20mZT5X52iGHORek0H8XPV-3HNhmwrcPr1O6_w/viewform?usp=header', '_blank')"><b>💬 Give Feedback</b></div>
+        <div class="bus-list-item" style="margin-top: 15px; background: #e0f2fe; border: 1px solid #bae6fd;" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSdVfOC1bZcv20mZT5X52iGHORek0H8XPV-3HNhmwrcPr1O6_w/viewform?usp=header', '_blank')"><b style="color:#0f172a;">💬 Give Feedback</b></div>
+        
+        <div class="bus-list-item about-toggle-btn" onclick="toggleAbout()">ℹ️ About</div>
+        <div id="about-box" class="about-content">
+            <div class="about-title">BUFT Unified Bus Tracker <span style="font-size:12px; background:#2563eb; color:white; padding:2px 6px; border-radius:4px; vertical-align:middle;">V3.0</span></div>
+            <p style="margin: 0 0 10px 0;">A comprehensive student-led idea designed to modernize University transportation.</p>
+            
+            <div class="about-limit" style="color:#0f172a;">Key Features:</div>
+            <ul class="new-feature-list">
+                <li><b>Real-Time Map Tracking:</b> Instantly see the exact, live location of all university buses on an interactive map.</li>
+                <li><b>Route Identification:</b> Easily find which bus is heading to your destination (e.g., Mirpur, Tongi, Azampur, etc.) by tapping the bus icons.</li>
+                <li><b>Live Status & Speed:</b> Check if your bus is currently moving, stopped, or inactive, along with its current speed in km/h.</li>
+                <li><b>Driver Information:</b> View the assigned driver's name and contact information (if available) directly from the map.</li>
+                <li><b>Mobile-Optimized:</b> Designed to work smoothly on your smartphone so you can track your ride while on the go.</li>
+            </ul>
+
+            <div class="about-credits">Developed By: <a href="https://www.facebook.com/NabilShazzad" target="_blank" style="color: #2563eb; text-decoration: none;"><b>Shazzad Hossain Nabil (TE_221)</b></a> <br>Assisted by: <b>Google Gemini AI</b><div id="visitor-count" class="visitor-text">Total Visitors: ...</div></div>
+        </div>
+    </div>
+
+    <div id="error-popup" class="error-popup-overlay">
+        <div class="error-popup-box">
+            <div class="error-popup-title">⚠️ Connection Timeout</div>
+            <div class="error-popup-text">No active buses detected. The main server might be asleep or experiencing an issue.</div>
+            <button class="error-popup-btn" onclick="notifyDeveloperUI(this)">Notify Developer</button>
+            <div class="error-popup-close" onclick="closeErrorPopup()">Dismiss</div>
+        </div>
     </div>
 
     <div id="map"></div>
@@ -141,141 +192,20 @@
     </div>
 
     <script>
-        // Init Map & Cluster Group
-        const map = L.map('map', {zoomControl: false}).setView([23.8741, 90.3992], 12);
+        const map = L.map('map', {zoomControl: false, attributionControl: false}).setView([23.8741, 90.3992], 12);
         L.control.zoom({position: 'bottomright'}).addTo(map);
         L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'] }).addTo(map);
-        const markers = L.markerClusterGroup({ disableClusteringAtZoom: 16, maxClusterRadius: 40 });
-        map.addLayer(markers);
-
+        
         const SERVER = "https://bus-server-lr2x.onrender.com"; 
+
         let globalFleetData = [];
         let mapMarkersObj = {}; 
         let userMarker = null;
+        let isSidebarBuilt = false;
 
-        // --- DARK MODE INIT ---
-        if(localStorage.getItem('darkMode') === '1') {
-            document.body.classList.add('dark-mode');
-            document.getElementById('dark-btn').innerText = "☀️";
-        }
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDark ? '1' : '0');
-            document.getElementById('dark-btn').innerText = isDark ? "☀️" : "🌙";
-        }
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-
-        // --- FETCH MASTER FLEET EFFICIENTLY ---
-        async function fetchFleet() {
-            try {
-                const res = await fetch(`${SERVER}/fleet`);
-                if (!res.ok) throw new Error("Server error");
-                const fleet = await res.json();
-                globalFleetData = fleet;
-                
-                let activeCount = 0;
-                markers.clearLayers(); // Clear old clusters
-
-                // Update Sidebar container
-                const listEl = document.getElementById('bus-list-container');
-                listEl.innerHTML = "";
-
-                fleet.forEach(bus => {
-                    let busColor = '#94a3b8'; // Default Inactive Gray
-                    let statusLabel = bus.status;
-                    let dotBg = '#ccc';
-
-                    if (bus.status === "Running") {
-                        busColor = bus.speed > 40 ? '#a855f7' : '#22c55e'; 
-                        dotBg = '#22c55e';
-                        activeCount++;
-                    } else if (bus.status === "Stopped") {
-                        busColor = '#ef4444'; 
-                        dotBg = '#ef4444';
-                        activeCount++;
-                    } else if (bus.status === "Idle") {
-                        busColor = '#f59e0b'; 
-                        dotBg = '#f59e0b';
-                        activeCount++;
-                    }
-
-                    // 1. Build Sidebar Item
-                    const shortName = bus.name.includes(':') ? bus.name.split(':')[1].trim() : bus.name;
-                    const subText = bus.status === 'Inactive' ? `Last seen ${bus.since}` : `${bus.status} • ${bus.speed} km/h`;
-                    
-                    const item = document.createElement('div');
-                    item.className = 'bus-list-item sidebar-bus-row';
-                    item.setAttribute('data-name', bus.name.toLowerCase());
-                    item.innerHTML = `
-                        <div class="bus-info">
-                            <span class="bus-name">${bus.name}</span>
-                            <span class="bus-subtext">${subText}</span>
-                        </div>
-                        <div class="status-dot" style="background: ${dotBg}; box-shadow: 0 0 5px ${dotBg};"></div>
-                    `;
-                    item.onclick = () => focusBusOnMap(bus.id);
-                    listEl.appendChild(item);
-
-                    // 2. Build Map Marker if valid GPS
-                    if (bus.lat > 0 && bus.lng > 0) {
-                        const durationStr = bus.status === 'Inactive' ? `Inactive for ${bus.since}` : `Since ${bus.since}`;
-                        
-                        // Clean popup (Hide empty driver fields)
-                        let driverHtml = bus.driver !== "--" ? `<div class="info-row"><span class="info-icon">👤</span> <b>${bus.driver}</b></div>` : "";
-                        let phoneHtml = bus.phone !== "--" ? `<div class="info-row"><span class="info-icon">📞</span> <a href="tel:${bus.phone}" style="color:#2563eb; font-weight:700;">${bus.phone}</a></div>` : "";
-
-                        const popupHtml = `
-                            <div class="popup-header" style="background:${busColor}"><span>🚌 ${bus.name}</span></div>
-                            <div class="popup-body">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                                    <span class="status-badge" style="background:${busColor}20; color:${busColor};">${statusLabel}</span>
-                                    <span style="font-size:12px; font-weight:700; color:#64748b;">⏳ ${durationStr}</span>
-                                </div>
-                                ${driverHtml}
-                                ${phoneHtml}
-                                <div class="info-row"><span class="info-icon">🚀</span> <b>${bus.speed} km/h</b></div>
-                                <div class="info-row"><span class="info-icon">📍</span> ${bus.address}</div>
-                                <div style="font-size:10px; color:#94a3b8; text-align:right; margin-top:8px; border-top:1px solid #e2e8f0; padding-top:6px;">Updated: ${fixTime(bus.updated)}</div>
-                                <a href="https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}" target="_blank" class="track-link">Open in BongoIOT</a>
-                            </div>`;
-                        
-                        // SVG with short label underneath
-                        const svgString = getBusSVG(busColor);
-                        const busImgSrc = "data:image/svg+xml;base64," + btoa(svgString);
-                        
-                        const customIcon = L.divIcon({ 
-                            className: 'custom-bus-icon', 
-                            html: `
-                                <div class="bus-icon-wrapper">
-                                    <img src="${busImgSrc}" class="bus-img-top" style="transform: rotate(${bus.course}deg);">
-                                    <div class="map-bus-label">${shortName}</div>
-                                </div>`, 
-                            iconSize: [40, 60], iconAnchor: [20, 30], popupAnchor: [0, -25] 
-                        });
-
-                        const marker = L.marker([bus.lat, bus.lng], {icon: customIcon}).bindPopup(popupHtml);
-                        mapMarkersObj[bus.id] = marker;
-                        markers.addLayer(marker);
-                    }
-                });
-
-                // Update Dashboard
-                const statusEl = document.getElementById('status-text');
-                if (activeCount > 0) {
-                    statusEl.innerText = `✅ Active: ${activeCount} Buses`;
-                    statusEl.style.color = "#059669";
-                } else {
-                    statusEl.innerText = "⚠️ No Active Buses";
-                    statusEl.style.color = "#ef4444";
-                }
-
-                filterSidebar(); // Re-apply search filter if user is typing
-            } catch(e) {
-                console.log(e);
-            }
-        }
-
+        function toggleAbout() { const box = document.getElementById('about-box'); box.style.display = (box.style.display === "block") ? "none" : "block"; }
+        
         // --- SEARCH FILTER ---
         function filterSidebar() {
             const query = document.getElementById('search-box').value.toLowerCase();
@@ -286,18 +216,311 @@
             });
         }
 
-        function focusBusOnMap(id) {
-            if (mapMarkersObj[id]) { 
-                const marker = mapMarkersObj[id]; 
-                markers.zoomToShowLayer(marker, () => {
-                    map.flyTo(marker.getLatLng(), 16); 
-                    marker.openPopup(); 
-                    toggleSidebar(); 
-                });
-            } else { alert("Bus is currently offline or location not found."); }
+        // --- DARK MODE LOGIC ---
+        if(localStorage.getItem('darkMode') === '1') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('dark-mode-btn').innerText = "☀️ Light";
+        }
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark ? '1' : '0');
+            document.getElementById('dark-mode-btn').innerText = isDark ? "☀️ Light" : "🌙 Dark";
         }
 
-        // --- TIME LOGIC ---
+        function focusBus(id) {
+            if (mapMarkersObj[id]) { 
+                const marker = mapMarkersObj[id]; 
+                map.flyTo(marker.getLatLng(), 15); 
+                marker.openPopup(); 
+                toggleSidebar(); 
+            } else { alert("Bus position not yet found. Please wait."); }
+        }
+
+        function getBusSVG(color) {
+            return `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 240">
+                <rect x="15" y="15" width="70" height="210" rx="12" fill="${color}" stroke="#ffffff" stroke-width="6"/>
+                <path d="M 25 15 L 75 15 L 75 22 Q 50 28 25 22 Z" fill="#1e293b"/>
+                <path d="M20 35 Q50 20 80 35 L80 60 Q50 50 20 60 Z" fill="#334155"/>
+                <rect x="25" y="205" width="50" height="10" rx="2" fill="#334155"/>
+                <rect x="30" y="90" width="40" height="30" rx="4" fill="rgba(255,255,255,0.4)"/>
+                <rect x="30" y="140" width="40" height="30" rx="4" fill="rgba(255,255,255,0.4)"/>
+                <path d="M15 45 L5 40 L5 60 L15 55 Z" fill="${color}" stroke="white" stroke-width="3"/>
+                <path d="M85 45 L95 40 L95 60 L85 55 Z" fill="${color}" stroke="white" stroke-width="3"/>
+            </svg>`;
+        }
+
+        // --- LIVE USER LOCATION (WIDER GOOGLE MAPS BEAM) ---
+        let watchId = null;
+        let orientationHandler = null;
+        let currentRotation = 0; 
+        
+        function getContinuousAngle(newAngle) {
+            let diff = newAngle - (currentRotation % 360);
+            if (diff > 180) diff -= 360;
+            if (diff < -180) diff += 360;
+            currentRotation += diff;
+            return currentRotation;
+        }
+
+        function handleOrientation(event) {
+            let compassHeading = null;
+            if (event.webkitCompassHeading) {
+                compassHeading = event.webkitCompassHeading;
+            } else if (event.absolute !== false && event.alpha !== null) {
+                compassHeading = 360 - event.alpha; 
+            }
+
+            if (compassHeading !== null) {
+                const wrapper = document.getElementById('user-direction-wrapper');
+                const beam = document.getElementById('user-direction-beam');
+                if (wrapper && beam) {
+                    beam.style.display = 'block'; 
+                    let smoothAngle = getContinuousAngle(compassHeading);
+                    wrapper.style.transition = "transform 0.15s ease-out";
+                    wrapper.style.transform = `rotate(${smoothAngle}deg)`;
+                }
+            }
+        }
+
+        function findUser() {
+            if (!navigator.geolocation) { alert("GPS not supported."); return; }
+            const btn = document.querySelector('.loc-btn');
+            
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                if (orientationHandler) {
+                    window.removeEventListener('deviceorientationabsolute', orientationHandler);
+                    window.removeEventListener('deviceorientation', orientationHandler);
+                    orientationHandler = null;
+                }
+                if(userMarker) { map.removeLayer(userMarker); userMarker = null; }
+                btn.innerHTML = "<span>📍</span> Locate Me";
+                btn.style.background = "#2563eb"; 
+                return;
+            }
+
+            btn.innerHTML = "📡 Connecting GPS...";
+            
+            // WIDER GOOGLE MAPS STYLE BEAM (120px width)
+            const blueIconHtml = `
+            <div id="user-direction-wrapper" style="position:relative; width:16px; height:16px;">
+                <div id="user-direction-beam" style="
+                    position: absolute; width: 120px; height: 120px; top: -105px; left: -52px;
+                    background: radial-gradient(circle at 50% 100%, rgba(37, 99, 235, 0.6) 0%, rgba(37, 99, 235, 0) 70%);
+                    clip-path: polygon(50% 100%, 0% 0, 100% 0); display: none;">
+                </div>
+                <div class="user-loc-dot"></div>
+            </div>`;
+
+            const blueIcon = L.divIcon({
+                className: 'custom-user-dot',
+                html: blueIconHtml,
+                iconSize: [16, 16], iconAnchor: [8, 8]
+            });
+
+            watchId = navigator.geolocation.watchPosition(position => {
+                const lat = position.coords.latitude; 
+                const lng = position.coords.longitude;
+
+                if (userMarker) {
+                    userMarker.setLatLng([lat, lng]); 
+                } else {
+                    userMarker = L.marker([lat, lng], {icon: blueIcon}).addTo(map); 
+                    map.setView([lat, lng], 16); 
+                    
+                    orientationHandler = handleOrientation;
+                    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                        DeviceOrientationEvent.requestPermission().then(permissionState => {
+                            if (permissionState === 'granted') { window.addEventListener('deviceorientation', orientationHandler); }
+                        }).catch(console.error);
+                    } else {
+                        window.addEventListener('deviceorientationabsolute', orientationHandler);
+                        window.addEventListener('deviceorientation', orientationHandler); 
+                    }
+                }
+                
+                btn.innerHTML = "<span>🎯</span> Tracking Active";
+                btn.style.background = "#10b981"; 
+            }, () => { 
+                alert("Location denied."); 
+                btn.innerHTML = "❌ Denied"; 
+                btn.style.background = "#ef4444";
+            }, { enableHighAccuracy: true, maximumAge: 0 }); 
+        }
+
+        function fixTime(timeStr) {
+            if (!timeStr || timeStr === "--") return "--";
+            try {
+                const parts = timeStr.split(/[- :]/); 
+                if (parts.length < 6) return timeStr;
+
+                let day = parseInt(parts[0]);
+                let month = parseInt(parts[1]) - 1; 
+                let year = parseInt(parts[2]);
+                let hours = parseInt(parts[3]);
+                let minutes = parseInt(parts[4]);
+                let seconds = parseInt(parts[5]);
+                let ampm = parts[6];
+
+                if (ampm === "PM" && hours < 12) hours += 12;
+                if (ampm === "AM" && hours === 12) hours = 0;
+
+                let date = new Date(year, month, day, hours, minutes, seconds);
+                date.setHours(date.getHours() + 1);
+
+                let h = date.getHours();
+                const a = h >= 12 ? 'PM' : 'AM';
+                h = h % 12;
+                h = h ? h : 12; 
+                let m = date.getMinutes().toString().padStart(2, '0');
+                let s = date.getSeconds().toString().padStart(2, '0');
+                let d = date.getDate().toString().padStart(2, '0');
+                let mo = (date.getMonth() + 1).toString().padStart(2, '0');
+                let yStr = date.getFullYear();
+
+                return `${d}-${mo}-${yStr} ${h}:${m}:${s} ${a}`;
+            } catch(e) {
+                return timeStr; 
+            }
+        }
+
+        // --- HIGH PERFORMANCE BATCH FETCH ---
+        async function fetchFleet() {
+            try {
+                const res = await fetch(`${SERVER}/fleet`);
+                if (!res.ok) throw new Error("Server error");
+                const fleet = await res.json();
+                globalFleetData = fleet;
+                
+                let activeCount = 0;
+                const listContainer = document.getElementById('bus-list-container');
+
+                if (!isSidebarBuilt && fleet.length > 0) {
+                    listContainer.innerHTML = ""; // Clear loading text
+                }
+
+                fleet.forEach(bus => {
+                    let busColor = '#94a3b8'; 
+                    let badgeBg = '#f1f5f9';
+                    let dotColor = '#ccc';
+
+                    if (bus.status === "Running") {
+                        busColor = bus.speed > 40 ? '#a855f7' : '#22c55e'; 
+                        badgeBg = bus.speed > 40 ? '#f3e8ff' : '#dcfce7';
+                        dotColor = busColor;
+                        activeCount++;
+                    } else if (bus.status === "Stopped") {
+                        busColor = '#ef4444'; 
+                        badgeBg = '#fee2e2';
+                        dotColor = busColor;
+                        activeCount++;
+                    } else if (bus.status === "Idle") {
+                        busColor = '#f59e0b'; 
+                        badgeBg = '#fef3c7';
+                        dotColor = busColor;
+                        activeCount++;
+                    }
+
+                    // 1. BUILD SIDEBAR ITEMS ONLY ONCE
+                    if (!isSidebarBuilt) {
+                        const item = document.createElement('div');
+                        item.className = 'bus-list-item sidebar-bus-row';
+                        item.setAttribute('data-name', bus.name.toLowerCase());
+                        item.innerHTML = `<div class="bus-name">${bus.name}</div><div class="right-group"><div class="status-dot" id="dot-${bus.id}"></div></div>`;
+                        item.onclick = () => focusBus(bus.id);
+                        listContainer.appendChild(item);
+                    }
+
+                    // 2. UPDATE SIDEBAR DOTS
+                    const dot = document.getElementById(`dot-${bus.id}`);
+                    if (dot) {
+                        if (bus.status !== "Inactive" && bus.status !== "Unknown") {
+                            dot.classList.add('active');
+                            dot.style.background = dotColor;
+                            dot.style.boxShadow = `0 0 5px ${dotColor}`;
+                        } else {
+                            dot.classList.remove('active');
+                            dot.style.background = '#ccc';
+                            dot.style.boxShadow = 'none';
+                        }
+                    }
+
+                    // 3. BUILD/UPDATE MAP MARKERS & POPUPS
+                    if (bus.lat > 0 && bus.lng > 0) {
+                        let durationText = bus.status === 'Inactive' ? `Inactive for ${bus.since}` : `Since ${bus.since}`;
+                        
+                        // Original popup design, preserving the -- if empty
+                        let driverName = bus.driver || "--";
+                        let mobileNo = bus.phone || "--";
+
+                        const popup = `
+                            <div class="popup-header" style="background:${busColor}">
+                                <span>🚌 ${bus.name}</span>
+                            </div>
+                            <div class="popup-body">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                    <span class="status-badge" style="background:${badgeBg}; color:${busColor};">
+                                        ${bus.status}
+                                    </span>
+                                    <span style="font-size:12px; font-weight:700; color:#64748b;">
+                                        ⏳ ${durationText}
+                                    </span>
+                                </div>
+
+                                <div class="info-row"><span class="info-icon">👤</span> <b>${driverName}</b></div>
+                                <div class="info-row"><span class="info-icon">📞</span> <a href="tel:${mobileNo}" style="color:#2563eb; text-decoration:none; font-weight:700;">${mobileNo}</a></div>
+                                <div class="info-row"><span class="info-icon">🚀</span> <b>${bus.speed} km/h</b></div>
+                                <div class="info-row"><span class="info-icon">📍</span> ${bus.address}</div>
+
+                                <div style="font-size:10px; color:#94a3b8; text-align:right; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:6px;">
+                                    Updated: ${fixTime(bus.updated)}
+                                </div>
+                                <a href="https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}" target="_blank" class="track-link">🔗 Open Full Live Tracker</a>
+                            </div>`;
+                        
+                        const svgString = getBusSVG(busColor);
+                        const busImgSrc = "data:image/svg+xml;base64," + btoa(svgString);
+
+                        // Original label style
+                        const shortName = bus.name.includes(':') ? bus.name.split(':')[0].trim() : bus.name;
+                        const customIcon = L.divIcon({ 
+                            className: 'custom-bus-icon', 
+                            html: `
+                            <div class="bus-icon-wrapper">
+                                <img src="${busImgSrc}" class="bus-img-top" id="img-${bus.id}" style="transform: rotate(${bus.course}deg);">
+                                <div class="map-bus-label">${shortName}</div>
+                            </div>`, 
+                            iconSize: [44, 60], iconAnchor: [22, 30], popupAnchor: [0, -20] 
+                        });
+
+                        if (mapMarkersObj[bus.id]) {
+                            mapMarkersObj[bus.id].setLatLng([bus.lat, bus.lng]).setPopupContent(popup).setIcon(customIcon);
+                        } else { 
+                            mapMarkersObj[bus.id] = L.marker([bus.lat, bus.lng], {icon: customIcon}).addTo(map).bindPopup(popup); 
+                        }
+                    }
+                });
+
+                isSidebarBuilt = true;
+
+                // Update Dashboard Status
+                const statusEl = document.getElementById('status-text');
+                if (activeCount > 0) {
+                    statusEl.innerText = `✅ Active: ${activeCount} Buses`;
+                    statusEl.style.color = "#059669";
+                } else {
+                    statusEl.innerText = "⚠️ No Active Buses";
+                    statusEl.style.color = "#ef4444";
+                }
+            } catch (e) {
+                console.log("Network scan error.", e);
+            }
+        }
+
+        // --- UNIFIED TIME LOGIC ---
         function isNightTime() {
             const dhakaTime = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Dhaka"}));
             const h = dhakaTime.getHours(); const m = dhakaTime.getMinutes();
@@ -312,56 +535,37 @@
             } else {
                 document.getElementById('floating-night-notice').style.display = 'none';
                 document.getElementById('night-notice-sidebar').style.display = 'none';
-                fetchFleet(); // Only fetch if not night
+                fetchFleet(); // Only fetch data if it is not night
             }
         }
 
-        // Init loops
+        // --- START LOOPS ---
         checkTimeAndFetch();
-        setInterval(checkTimeAndFetch, 5000);
+        setInterval(checkTimeAndFetch, 5000); 
 
-        // --- GPS LOCATE ME (UNCHANGED) ---
-        let watchId = null; let orientationHandler = null; let currentRotation = 0;
-        function getContinuousAngle(newAngle) { let diff = newAngle - (currentRotation % 360); if (diff > 180) diff -= 360; if (diff < -180) diff += 360; currentRotation += diff; return currentRotation; }
-        function handleOrientation(event) {
-            let ch = event.webkitCompassHeading || (event.absolute !== false && event.alpha !== null ? 360 - event.alpha : null);
-            if (ch !== null) {
-                const wrapper = document.getElementById('user-direction-wrapper'); const beam = document.getElementById('user-direction-beam');
-                if (wrapper && beam) { beam.style.display = 'block'; wrapper.style.transition = "transform 0.15s ease-out"; wrapper.style.transform = `rotate(${getContinuousAngle(ch)}deg)`; }
-            }
-        }
-        function findUser() {
-            if (!navigator.geolocation) { alert("GPS not supported."); return; }
-            const btn = document.querySelector('.loc-btn');
-            if (watchId !== null) {
-                navigator.geolocation.clearWatch(watchId); watchId = null;
-                if (orientationHandler) { window.removeEventListener('deviceorientationabsolute', orientationHandler); window.removeEventListener('deviceorientation', orientationHandler); orientationHandler = null; }
-                if(userMarker) { map.removeLayer(userMarker); userMarker = null; }
-                btn.innerHTML = "<span>📍</span> Locate Me"; btn.style.background = "#2563eb"; return;
-            }
-            btn.innerHTML = "📡 Connecting GPS...";
-            const blueIconHtml = `<div id="user-direction-wrapper" style="position:relative; width:16px; height:16px;"><div id="user-direction-beam" style="position: absolute; width: 80px; height: 80px; top: -70px; left: -32px; background: radial-gradient(circle at 50% 100%, rgba(37, 99, 235, 0.7) 0%, rgba(37, 99, 235, 0) 70%); clip-path: polygon(50% 100%, 10% 0, 90% 0); display: none;"></div><div class="user-loc-dot"></div></div>`;
-            const blueIcon = L.divIcon({ className: 'custom-user-dot', html: blueIconHtml, iconSize: [16, 16], iconAnchor: [8, 8] });
-
-            watchId = navigator.geolocation.watchPosition(position => {
-                const lat = position.coords.latitude; const lng = position.coords.longitude;
-                if (userMarker) userMarker.setLatLng([lat, lng]); 
-                else { userMarker = L.marker([lat, lng], {icon: blueIcon}).addTo(map); map.setView([lat, lng], 16); 
-                    orientationHandler = handleOrientation;
-                    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') { DeviceOrientationEvent.requestPermission().then(state => { if (state === 'granted') window.addEventListener('deviceorientation', orientationHandler); }); } else { window.addEventListener('deviceorientationabsolute', orientationHandler); window.addEventListener('deviceorientation', orientationHandler); }
+        // --- 10 SECOND ALARM & GIMMICK UI ---
+        let hasAlerted = false;
+        setTimeout(() => {
+            const activeCount = document.querySelectorAll('.status-dot.active').length;
+            if (activeCount === 0 && !hasAlerted) {
+                hasAlerted = true;
+                console.log("🚨 10s passed with 0 buses. Pinging server alarm...");
+                fetch(`${SERVER}/send-alert`).catch(e => console.log("Alarm Error:", e));
+                
+                if (!isNightTime()) {
+                    document.getElementById('error-popup').style.display = 'flex';
                 }
-                btn.innerHTML = "<span>🎯</span> Tracking Active"; btn.style.background = "#10b981"; 
-            }, () => { alert("Location denied."); btn.innerHTML = "❌ Denied"; btn.style.background = "#ef4444"; }, { enableHighAccuracy: true }); 
+            }
+        }, 10000); 
+
+        function notifyDeveloperUI(btn) {
+            btn.innerText = "✅ Notification Sent!";
+            btn.style.background = "#22c55e";
+            setTimeout(closeErrorPopup, 2000);
         }
-
-        // --- HELPERS ---
-        function getBusSVG(color) { return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 240"><rect x="15" y="15" width="70" height="210" rx="12" fill="${color}" stroke="#ffffff" stroke-width="6"/><path d="M 25 15 L 75 15 L 75 22 Q 50 28 25 22 Z" fill="#1e293b"/><path d="M20 35 Q50 20 80 35 L80 60 Q50 50 20 60 Z" fill="#334155"/><rect x="25" y="205" width="50" height="10" rx="2" fill="#334155"/><rect x="30" y="90" width="40" height="30" rx="4" fill="rgba(255,255,255,0.4)"/><rect x="30" y="140" width="40" height="30" rx="4" fill="rgba(255,255,255,0.4)"/><path d="M15 45 L5 40 L5 60 L15 55 Z" fill="${color}" stroke="white" stroke-width="3"/><path d="M85 45 L95 40 L95 60 L85 55 Z" fill="${color}" stroke="white" stroke-width="3"/></svg>`; }
-        function fixTime(timeStr) { if (!timeStr || timeStr === "--") return "--"; try { const p = timeStr.split(/[- :]/); if (p.length < 6) return timeStr; let h = parseInt(p[3]); if (p[6] === "PM" && h < 12) h += 12; if (p[6] === "AM" && h === 12) h = 0; let d = new Date(p[2], p[1]-1, p[0], h, p[4], p[5]); d.setHours(d.getHours() + 1); let nh = d.getHours(); const a = nh >= 12 ? 'PM' : 'AM'; nh = nh % 12; nh = nh ? nh : 12; return `${d.getDate().toString().padStart(2,'0')}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getFullYear()} ${nh}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')} ${a}`; } catch(e) { return timeStr; } }
-
-        // Alarm system
-        setTimeout(() => { if (globalFleetData.length === 0 && !isNightTime()) { console.log("🚨 10s Pinging alarm..."); fetch(`${SERVER}/send-alert`).catch(e=>{}); document.getElementById('error-popup').style.display = 'flex'; } }, 10000); 
-        function notifyDeveloperUI(btn) { btn.innerText = "✅ Notification Sent!"; btn.style.background = "#22c55e"; setTimeout(()=>document.getElementById('error-popup').style.display='none', 2000); }
         function closeErrorPopup() { document.getElementById('error-popup').style.display = 'none'; }
+
+        fetch("https://api.counterapi.dev/v1/buft-tracker-nabil/view/up").then(res => res.json()).then(data => { const el = document.getElementById('visitor-count'); if(el) el.innerText = `Total Visitors: ${data.count}`; }).catch(e => {});
     </script>
 </body>
 </html>
