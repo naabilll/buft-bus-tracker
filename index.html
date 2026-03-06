@@ -46,12 +46,18 @@
         .sidebar.open { left: 0; }
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; transition: border-color 0.3s; }
         .sidebar-header h2 { transition: color 0.3s; margin: 0; font-size: 20px; }
-        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .header-actions { display: flex; gap: 12px; align-items: center; }
         
-        /* EXPLICIT DARK MODE BUTTON */
-        #dark-mode-btn { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 20px; font-family: 'Outfit'; font-weight: 700; cursor: pointer; font-size: 12px; color: #334155; transition: 0.3s; }
-        #dark-mode-btn:hover { background: #e2e8f0; }
-        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; padding: 0; transition: color 0.3s; }
+        /* THEME SLIDER TOGGLE */
+        .theme-switch { position: relative; display: inline-block; width: 56px; height: 28px; }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 30px; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; font-size: 13px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider:before { transform: translateX(28px); }
+        .icon-sun, .icon-moon { z-index: 1; }
+
+        .close-btn { background: none; border: none; font-size: 26px; cursor: pointer; color: #64748b; padding: 0; transition: color 0.3s; line-height: 1; }
         
         #search-box { width: 100%; padding: 10px 15px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; font-family: 'Outfit'; font-weight: 600; margin-bottom: 15px; outline: none; transition: border-color 0.2s; }
         #search-box:focus { border-color: #3b82f6; }
@@ -70,7 +76,7 @@
         .leaflet-bottom.leaflet-right { margin-bottom: 90px !important; }
         .leaflet-control-zoom { box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important; border: none !important; }
 
-        /* ORIGINAL POPUPS */
+        /* POPUPS */
         .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: background 0.3s; }
         .leaflet-popup-content { margin: 0; width: 260px !important; }
         .popup-header { color: white; padding: 12px 15px; font-weight: 800; font-size: 15px; }
@@ -82,16 +88,19 @@
         .leaflet-container a.leaflet-popup-close-button { color: #ffffff !important; background: rgba(0, 0, 0, 0.4) !important; border-radius: 50%; width: 26px !important; height: 26px !important; line-height: 26px !important; text-align: center; top: 10px !important; right: 10px !important; padding: 0 !important; font-size: 16px !important; font-weight: bold; text-decoration: none; transition: background 0.2s; }
         .leaflet-container a.leaflet-popup-close-button:hover { background: rgba(0, 0, 0, 0.7) !important; color: white !important; }
         
-        /* BUS ICONS WITH LABELS */
-        .bus-icon-wrapper { position: relative; width: 44px; height: 44px; display: flex; flex-direction: column; align-items: center; } 
+        /* BUS ICONS WITH LABELS ON TOP */
+        .bus-icon-wrapper { position: relative; width: 44px; height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; } 
         .bus-img-top { width: 34px; height: 60px; transition: transform 0.5s linear; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
-        .map-bus-label { background: rgba(15, 23, 42, 0.85); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; margin-top: -6px; z-index: 10; white-space: nowrap; transition: background 0.3s, color 0.3s; }
+        .map-bus-label { position: absolute; top: -14px; background: rgba(15, 23, 42, 0.9); color: white; font-size: 12px; font-weight: 800; padding: 2px 6px; border-radius: 6px; z-index: 10; white-space: nowrap; transition: background 0.3s, color 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
         
-        /* ORIGINAL ABOUT SECTION */
+        /* ABOUT SECTION */
         .about-toggle-btn { margin-top: 15px; background: #f8fafc; color: #334155; font-weight: 600; font-size: 14px; border: 1px solid #e2e8f0; }
         .about-content { display: none; margin-top: 10px; padding: 15px; background: #f1f5f9; border-radius: 8px; font-size: 13px; color: #475569; line-height: 1.6; transition: background 0.3s; }
         .about-title { font-weight: 700; color: #0f172a; margin-bottom: 8px; font-size: 15px; transition: color 0.3s; }
-        .about-limit { margin-top: 12px; font-weight: 600; color: #ef4444; font-size: 13px; transition: color 0.3s; }
+        
+        /* KEY FEATURES FIX FOR DARK MODE */
+        .about-limit { margin-top: 12px; font-weight: 800; color: #0f172a; font-size: 14px; transition: color 0.3s; }
+        
         .about-credits { margin-top: 15px; font-size: 12px; color: #64748b; font-weight: 500; border-top: 1px solid #cbd5e1; padding-top: 10px; }
         .visitor-text { font-size: 11px; color: #94a3b8; margin-top: 5px; font-weight: 600; }
         .new-feature-list { list-style: none; padding: 0; margin: 5px 0; }
@@ -121,12 +130,12 @@
         body.dark-mode .bus-list-item:hover { background: #475569; }
         body.dark-mode .sidebar-header { border-color: #334155; }
         body.dark-mode .close-btn { color: #f8fafc; }
-        body.dark-mode #dark-mode-btn { background: #334155; border-color: #475569; color: #f8fafc; }
+        body.dark-mode .slider { background-color: #0f172a; border: 1px solid #334155; }
         body.dark-mode #search-box { background: #0f172a; border-color: #334155; color: white; }
         body.dark-mode .about-toggle-btn { background: #1e293b; color: #f8fafc; border-color: #334155; }
         body.dark-mode .about-content { background: #1e293b; color: #cbd5e1; }
         body.dark-mode .about-title { color: #f8fafc; }
-        body.dark-mode .about-limit { color: #cbd5e1; }
+        body.dark-mode .about-limit { color: #f8fafc; } /* FIX: Key Features Text White in Dark Mode */
         body.dark-mode .new-feature-list li { color: #cbd5e1; }
         body.dark-mode .leaflet-popup-content-wrapper { background: #1e293b; }
         body.dark-mode .popup-body { background: #1e293b; color: #cbd5e1; }
@@ -143,7 +152,13 @@
         <div class="sidebar-header">
             <h2>🚍 Bus List</h2>
             <div class="header-actions">
-                <button id="dark-mode-btn" onclick="toggleDarkMode()">🌙 Dark</button>
+                <label class="theme-switch">
+                    <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
+                    <span class="slider">
+                        <span class="icon-sun">☀️</span>
+                        <span class="icon-moon">🌙</span>
+                    </span>
+                </label>
                 <button class="close-btn" onclick="toggleSidebar()">×</button>
             </div>
         </div>
@@ -162,7 +177,7 @@
             <div class="about-title">BUFT Unified Bus Tracker <span style="font-size:12px; background:#2563eb; color:white; padding:2px 6px; border-radius:4px; vertical-align:middle;">V3.0</span></div>
             <p style="margin: 0 0 10px 0;">A comprehensive student-led idea designed to modernize University transportation.</p>
             
-            <div class="about-limit" style="color:#0f172a;">Key Features:</div>
+            <div class="about-limit">Key Features:</div>
             <ul class="new-feature-list">
                 <li><b>Real-Time Map Tracking:</b> Instantly see the exact, live location of all university buses on an interactive map.</li>
                 <li><b>Route Identification:</b> Easily find which bus is heading to your destination (e.g., Mirpur, Tongi, Azampur, etc.) by tapping the bus icons.</li>
@@ -216,16 +231,16 @@
             });
         }
 
-        // --- DARK MODE LOGIC ---
+        // --- DARK MODE LOGIC (SLIDER SYNC) ---
         if(localStorage.getItem('darkMode') === '1') {
             document.body.classList.add('dark-mode');
-            document.getElementById('dark-mode-btn').innerText = "☀️ Light";
+            document.getElementById('dark-mode-toggle').checked = true;
         }
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
             localStorage.setItem('darkMode', isDark ? '1' : '0');
-            document.getElementById('dark-mode-btn').innerText = isDark ? "☀️ Light" : "🌙 Dark";
+            document.getElementById('dark-mode-toggle').checked = isDark;
         }
 
         function focusBus(id) {
@@ -450,9 +465,14 @@
 
                     // 3. BUILD/UPDATE MAP MARKERS & POPUPS
                     if (bus.lat > 0 && bus.lng > 0) {
-                        let durationText = bus.status === 'Inactive' ? `Inactive for ${bus.since}` : `Since ${bus.since}`;
                         
-                        // Original popup design, preserving the -- if empty
+                        // PARSE TIME TO "h m" FORMAT
+                        let formattedSince = bus.since || "--";
+                        if (formattedSince.includes(":")) {
+                            formattedSince = formattedSince.replace(":", "h ") + "m";
+                        }
+                        let durationText = bus.status === 'Inactive' ? `Inactive for ${formattedSince}` : `Since ${formattedSince}`;
+                        
                         let driverName = bus.driver || "--";
                         let mobileNo = bus.phone || "--";
 
@@ -484,16 +504,25 @@
                         const svgString = getBusSVG(busColor);
                         const busImgSrc = "data:image/svg+xml;base64," + btoa(svgString);
 
-                        // Original label style
-                        const shortName = bus.name.includes(':') ? bus.name.split(':')[0].trim() : bus.name;
+                        // CREATE SMART MAP LABEL (e.g. "12" or "B1")
+                        let mapLabelText = "";
+                        if (bus.name.startsWith("Bus ")) {
+                            mapLabelText = bus.name.split(":")[0].replace("Bus", "").trim(); 
+                        } else if (bus.name.startsWith("BRTC ")) {
+                            mapLabelText = "B" + bus.name.replace("BRTC", "").trim().replace(/^0+/, ""); 
+                        } else {
+                            mapLabelText = bus.name;
+                        }
+
+                        // MAP LABEL POSITIONED ON TOP OF ICON
                         const customIcon = L.divIcon({ 
                             className: 'custom-bus-icon', 
                             html: `
                             <div class="bus-icon-wrapper">
+                                <div class="map-bus-label">${mapLabelText}</div>
                                 <img src="${busImgSrc}" class="bus-img-top" id="img-${bus.id}" style="transform: rotate(${bus.course}deg);">
-                                <div class="map-bus-label">${shortName}</div>
                             </div>`, 
-                            iconSize: [44, 60], iconAnchor: [22, 30], popupAnchor: [0, -20] 
+                            iconSize: [44, 44], iconAnchor: [22, 22], popupAnchor: [0, -20] 
                         });
 
                         if (mapMarkersObj[bus.id]) {
@@ -535,7 +564,7 @@
             } else {
                 document.getElementById('floating-night-notice').style.display = 'none';
                 document.getElementById('night-notice-sidebar').style.display = 'none';
-                fetchFleet(); // Only fetch data if it is not night
+                fetchFleet(); 
             }
         }
 
