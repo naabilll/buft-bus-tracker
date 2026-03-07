@@ -88,10 +88,35 @@
         .leaflet-container a.leaflet-popup-close-button { color: #ffffff !important; background: rgba(0, 0, 0, 0.4) !important; border-radius: 50%; width: 26px !important; height: 26px !important; line-height: 26px !important; text-align: center; top: 10px !important; right: 10px !important; padding: 0 !important; font-size: 16px !important; font-weight: bold; text-decoration: none; transition: background 0.2s; }
         .leaflet-container a.leaflet-popup-close-button:hover { background: rgba(0, 0, 0, 0.7) !important; color: white !important; }
         
-        /* BUS ICONS WITH LABELS ON TOP */
+        /* BUS ICONS WITH LABELS */
         .bus-icon-wrapper { position: relative; width: 44px; height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; } 
         .bus-img-top { width: 34px; height: 60px; transition: transform 0.5s linear; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
-        .map-bus-label { position: absolute; top: -14px; background: rgba(15, 23, 42, 0.9); color: white; font-size: 12px; font-weight: 800; padding: 2px 6px; border-radius: 6px; z-index: 10; white-space: nowrap; transition: background 0.3s, color 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        
+        /* NEW: CIRCULAR & CENTERED MAP LABEL */
+        .map-bus-label { 
+            position: absolute; 
+            top: 50%; /* Center vertically in wrapper */
+            left: 50%; /* Center horizontally in wrapper */
+            transform: translate(-50%, -50%); /* Offset to lock exact center */
+            background: rgba(15, 23, 42, 0.9); 
+            color: white; 
+            font-size: 10px; /* Slightly smaller number */
+            font-weight: 800; 
+            
+            /* Circular styling */
+            width: 22px; 
+            height: 22px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            
+            z-index: 10; 
+            white-space: nowrap; 
+            transition: background 0.3s, color 0.3s; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
+            border: 1px solid white; /* Outline for contrast */
+        }
         
         /* ABOUT SECTION */
         .about-toggle-btn { margin-top: 15px; background: #f8fafc; color: #334155; font-weight: 600; font-size: 14px; border: 1px solid #e2e8f0; }
@@ -141,7 +166,7 @@
         body.dark-mode .popup-body { background: #1e293b; color: #cbd5e1; }
         body.dark-mode .info-row { color: #cbd5e1; }
         body.dark-mode .track-link { background: #334155; color: #f8fafc; }
-        body.dark-mode .map-bus-label { background: #ffffff; color: #0f172a; }
+        body.dark-mode .map-bus-label { background: #ffffff; color: #0f172a; border-color: #ffffff; }
     </style>
 </head>
 <body>
@@ -466,7 +491,7 @@
                     // 3. BUILD/UPDATE MAP MARKERS & POPUPS
                     if (bus.lat > 0 && bus.lng > 0) {
                         
-                        // PARSE TIME TO "h m" FORMAT
+                        // PARSE TIME TO "h m" FORMAT SAME AS BEFORE
                         let formattedSince = bus.since || "--";
                         if (formattedSince.includes(":")) {
                             formattedSince = formattedSince.replace(":", "h ") + "m";
@@ -507,22 +532,24 @@
                         // CREATE SMART MAP LABEL (e.g. "12" or "B1")
                         let mapLabelText = "";
                         if (bus.name.startsWith("Bus ")) {
+                            // Extract just the number: "Bus 12: Tongi" -> "12"
                             mapLabelText = bus.name.split(":")[0].replace("Bus", "").trim(); 
                         } else if (bus.name.startsWith("BRTC ")) {
+                            // Extract number and add B: "BRTC 02" -> "B2"
                             mapLabelText = "B" + bus.name.replace("BRTC", "").trim().replace(/^0+/, ""); 
                         } else {
                             mapLabelText = bus.name;
                         }
 
-                        // MAP LABEL POSITIONED ON TOP OF ICON
+                        // CIRCULAR LABEL POSITIONED IN MIDDLE OF BUS
                         const customIcon = L.divIcon({ 
                             className: 'custom-bus-icon', 
                             html: `
                             <div class="bus-icon-wrapper">
-                                <div class="map-bus-label">${mapLabelText}</div>
                                 <img src="${busImgSrc}" class="bus-img-top" id="img-${bus.id}" style="transform: rotate(${bus.course}deg);">
+                                <div class="map-bus-label">${mapLabelText}</div>
                             </div>`, 
-                            iconSize: [44, 44], iconAnchor: [22, 22], popupAnchor: [0, -20] 
+                            iconSize: [40, 60], iconAnchor: [20, 30], popupAnchor: [0, -25] 
                         });
 
                         if (mapMarkersObj[bus.id]) {
