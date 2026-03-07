@@ -37,7 +37,7 @@
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         h2 { margin: 0; color: #0f172a; font-size: 16px; font-weight: 800; transition: color 0.3s; }
         
-        /* ORIGINAL STATUS TEXT */
+        /* ORIGINAL STATUS TEXT (NO SCANNING) */
         #status-text { font-size: 12px; font-weight: 700; background: #f1f5f9; padding: 5px 12px; border-radius: 12px; transition: background 0.3s, color 0.3s; white-space: nowrap; text-align: center; }
         
         .loc-btn { margin-top: 8px; width: 100%; padding: 8px; background: #2563eb; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.3s; }
@@ -91,22 +91,31 @@
         .leaflet-container a.leaflet-popup-close-button { color: #ffffff !important; background: rgba(0, 0, 0, 0.4) !important; border-radius: 50%; width: 26px !important; height: 26px !important; line-height: 26px !important; text-align: center; top: 10px !important; right: 10px !important; padding: 0 !important; font-size: 16px !important; font-weight: bold; text-decoration: none; transition: background 0.2s; }
         .leaflet-container a.leaflet-popup-close-button:hover { background: rgba(0, 0, 0, 0.7) !important; color: white !important; }
         
-        /* FIXED PERFECT CENTERED TEXT */
+        /* PERFECT CENTERED FLEXBOX ALIGNMENT FOR MAP ICON */
         .bus-icon-wrapper { 
             position: relative; 
             width: 40px; 
             height: 60px; 
         } 
+        /* The wrapper holding the SVG rotates, keeping image perfectly dead center */
+        .bus-rotate-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 40px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.5s linear;
+        }
         .bus-img-top { 
-            position: absolute; 
-            top: 0; 
-            left: 3px; 
             width: 34px; 
             height: 60px; 
-            transform-origin: center center; 
-            transition: transform 0.5s linear; 
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); 
         }
+        
+        /* The text sits in an identical un-rotated box on top, nudged to the left perfectly */
         .map-bus-label { 
             position: absolute; 
             top: 0; 
@@ -117,11 +126,15 @@
             align-items: center; 
             justify-content: center; 
             color: #ffffff; 
-            font-size: 12px; /* Smaller Font */
+            font-size: 12px; /* Set smaller as requested */
             font-family: 'Outfit', sans-serif;
-            font-weight: 800; 
+            font-weight: 900; 
             z-index: 10; 
             white-space: nowrap; 
+            /* Push text left visually so it isn't offset to the right edge */
+            padding-right: 2px;
+            padding-bottom: 2px; 
+            /* Heavy black outline so text works on any bus color */
             text-shadow: 
                 -1px -1px 0 #000,  
                  1px -1px 0 #000,
@@ -161,7 +174,7 @@
         body.dark-mode .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
         body.dark-mode .dashboard, body.dark-mode .sidebar, body.dark-mode .menu-btn { background: #1e293b; color: #f8fafc; }
         body.dark-mode .dashboard h2, body.dark-mode .sidebar-header h2, body.dark-mode .bus-name { color: #f8fafc; }
-        body.dark-mode #status-text { background: #334155; color: #cbd5e1 !important; }
+        body.dark-mode #status-text { background: #334155; }
         body.dark-mode .bus-list-item { background: #334155; color: #cbd5e1; }
         body.dark-mode .bus-list-item:hover { background: #475569; }
         body.dark-mode .sidebar-header { border-color: #334155; }
@@ -256,7 +269,6 @@
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function toggleAbout() { const box = document.getElementById('about-box'); box.style.display = (box.style.display === "block") ? "none" : "block"; }
         
-        // --- SEARCH FILTER ---
         function filterSidebar() {
             const query = document.getElementById('search-box').value.toLowerCase();
             const rows = document.querySelectorAll('.sidebar-bus-row');
@@ -266,7 +278,6 @@
             });
         }
 
-        // --- DARK MODE LOGIC (SLIDER SYNC) ---
         if(localStorage.getItem('darkMode') === '1') {
             document.body.classList.add('dark-mode');
             document.getElementById('dark-mode-toggle').checked = true;
@@ -301,7 +312,6 @@
             </svg>`;
         }
 
-        // --- LIVE USER LOCATION (WIDER GOOGLE MAPS BEAM) ---
         let watchId = null;
         let orientationHandler = null;
         let currentRotation = 0; 
@@ -354,7 +364,6 @@
 
             btn.innerHTML = "📡 Connecting GPS...";
             
-            // WIDER GOOGLE MAPS STYLE BEAM (120px width)
             const blueIconHtml = `
             <div id="user-direction-wrapper" style="position:relative; width:16px; height:16px;">
                 <div id="user-direction-beam" style="
@@ -437,7 +446,6 @@
             }
         }
 
-        // --- HIGH PERFORMANCE BATCH FETCH ---
         async function fetchFleet() {
             const statusEl = document.getElementById('status-text');
 
@@ -476,7 +484,6 @@
                         activeCount++;
                     }
 
-                    // 1. BUILD SIDEBAR ITEMS ONLY ONCE
                     if (!isSidebarBuilt) {
                         const item = document.createElement('div');
                         item.className = 'bus-list-item sidebar-bus-row';
@@ -486,7 +493,6 @@
                         listContainer.appendChild(item);
                     }
 
-                    // 2. UPDATE SIDEBAR DOTS
                     const dot = document.getElementById(`dot-${bus.id}`);
                     if (dot) {
                         if (bus.status !== "Inactive" && bus.status !== "Unknown") {
@@ -500,7 +506,6 @@
                         }
                     }
 
-                    // 3. BUILD/UPDATE MAP MARKERS & POPUPS
                     if (bus.lat > 0 && bus.lng > 0) {
                         
                         let formattedSince = bus.since || "--";
@@ -549,12 +554,14 @@
                             mapLabelText = bus.name;
                         }
 
-                        // EXACT CENTERED EMBEDDED NUMBER LOGIC WITH HEAVY EDGE SHADOW
+                        /* NEW FLEXBOX WRAPPER: GUARANTEES PERFECT CENTERING */
                         const customIcon = L.divIcon({ 
                             className: 'custom-bus-icon', 
                             html: `
                             <div class="bus-icon-wrapper">
-                                <img src="${busImgSrc}" class="bus-img-top" id="img-${bus.id}" style="transform: rotate(${bus.course}deg);">
+                                <div class="bus-rotate-wrapper" id="img-${bus.id}" style="transform: rotate(${bus.course}deg);">
+                                    <img src="${busImgSrc}" class="bus-img-top">
+                                </div>
                                 <div class="map-bus-label">${mapLabelText}</div>
                             </div>`, 
                             iconSize: [40, 60], iconAnchor: [20, 30], popupAnchor: [0, -25] 
@@ -570,7 +577,7 @@
 
                 isSidebarBuilt = true;
 
-                // REVERTED: Original simple status text without the scanning animation
+                // REVERTED TO ORIGINAL SIMPLE STATUS TEXT
                 if (activeCount > 0) {
                     statusEl.innerText = `✅ Active: ${activeCount} Buses`;
                     statusEl.style.color = document.body.classList.contains('dark-mode') ? "#10b981" : "#059669";
@@ -586,7 +593,6 @@
             }
         }
 
-        // --- UNIFIED TIME LOGIC ---
         function isNightTime() {
             const dhakaTime = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Dhaka"}));
             const h = dhakaTime.getHours(); const m = dhakaTime.getMinutes();
@@ -605,11 +611,9 @@
             }
         }
 
-        // --- START LOOPS ---
         checkTimeAndFetch();
         setInterval(checkTimeAndFetch, 5000); 
 
-        // --- 10 SECOND ALARM & GIMMICK UI ---
         let hasAlerted = false;
         setTimeout(() => {
             const activeCount = document.querySelectorAll('.status-dot.active').length;
