@@ -24,7 +24,7 @@
 
         .ghost-bus img { filter: grayscale(100%) opacity(0.5); }
 
-        /* SMALLER DASHBOARD */
+        /* COMPACT DASHBOARD */
         .dashboard {
             position: absolute; top: 15px; right: 15px;
             background: #ffffff; padding: 12px 18px;
@@ -32,11 +32,11 @@
             z-index: 1000; display: flex; flex-direction: column; align-items: center;
             transition: background 0.3s, color 0.3s;
         }
-        .header-row { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+        .header-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
         .live-badge { width: 10px; height: 10px; background: #ef4444; border-radius: 50%; animation: pulse-red 2s infinite; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         h2 { margin: 0; color: #0f172a; font-size: 16px; font-weight: 800; transition: color 0.3s; }
-        #status-text { font-size: 12px; color: #64748b; font-weight: 700; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; transition: background 0.3s, color 0.3s; }
+        #status-text { font-size: 12px; font-weight: 700; background: #f1f5f9; padding: 5px 12px; border-radius: 12px; transition: background 0.3s, color 0.3s; white-space: nowrap; }
         .loc-btn { margin-top: 8px; width: 100%; padding: 8px; background: #2563eb; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.3s; }
 
         .menu-btn { position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 12px 15px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); font-size: 20px; cursor: pointer; z-index: 1001; transition: background 0.3s, color 0.3s; }
@@ -76,7 +76,7 @@
         .leaflet-bottom.leaflet-right { margin-bottom: 90px !important; }
         .leaflet-control-zoom { box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important; border: none !important; }
 
-        /* POPUPS */
+        /* ORIGINAL POPUPS */
         .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: background 0.3s; }
         .leaflet-popup-content { margin: 0; width: 260px !important; }
         .popup-header { color: white; padding: 12px 15px; font-weight: 800; font-size: 15px; }
@@ -88,34 +88,29 @@
         .leaflet-container a.leaflet-popup-close-button { color: #ffffff !important; background: rgba(0, 0, 0, 0.4) !important; border-radius: 50%; width: 26px !important; height: 26px !important; line-height: 26px !important; text-align: center; top: 10px !important; right: 10px !important; padding: 0 !important; font-size: 16px !important; font-weight: bold; text-decoration: none; transition: background 0.2s; }
         .leaflet-container a.leaflet-popup-close-button:hover { background: rgba(0, 0, 0, 0.7) !important; color: white !important; }
         
-        /* BUS ICONS WITH LABELS */
-        .bus-icon-wrapper { position: relative; width: 44px; height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; } 
-        .bus-img-top { width: 34px; height: 60px; transition: transform 0.5s linear; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+        /* BUS ICONS WITH CENTERED CIRCULAR LABELS */
+        .bus-icon-wrapper { position: relative; width: 44px; height: 44px; } 
+        .bus-img-top { position: absolute; top: 50%; left: 50%; width: 34px; height: 60px; margin-top: -30px; margin-left: -17px; transform-origin: center center; transition: transform 0.5s linear; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
         
-        /* NEW: CIRCULAR & CENTERED MAP LABEL */
+        /* THE DYNAMIC NUMBER BADGE */
         .map-bus-label { 
             position: absolute; 
-            top: 50%; /* Center vertically in wrapper */
-            left: 50%; /* Center horizontally in wrapper */
-            transform: translate(-50%, -50%); /* Offset to lock exact center */
-            background: rgba(15, 23, 42, 0.9); 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
             color: white; 
-            font-size: 10px; /* Slightly smaller number */
+            font-size: 10px; 
             font-weight: 800; 
-            
-            /* Circular styling */
-            width: 22px; 
-            height: 22px; 
+            width: 20px; 
+            height: 20px; 
             border-radius: 50%; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            
             z-index: 10; 
-            white-space: nowrap; 
+            border: 1.5px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
             transition: background 0.3s, color 0.3s; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
-            border: 1px solid white; /* Outline for contrast */
         }
         
         /* ABOUT SECTION */
@@ -151,7 +146,8 @@
         body.dark-mode .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
         body.dark-mode .dashboard, body.dark-mode .sidebar, body.dark-mode .menu-btn { background: #1e293b; color: #f8fafc; }
         body.dark-mode .dashboard h2, body.dark-mode .sidebar-header h2, body.dark-mode .bus-name { color: #f8fafc; }
-        body.dark-mode #status-text, body.dark-mode .bus-list-item { background: #334155; color: #cbd5e1; }
+        body.dark-mode #status-text { background: #334155; }
+        body.dark-mode .bus-list-item { background: #334155; color: #cbd5e1; }
         body.dark-mode .bus-list-item:hover { background: #475569; }
         body.dark-mode .sidebar-header { border-color: #334155; }
         body.dark-mode .close-btn { color: #f8fafc; }
@@ -160,13 +156,12 @@
         body.dark-mode .about-toggle-btn { background: #1e293b; color: #f8fafc; border-color: #334155; }
         body.dark-mode .about-content { background: #1e293b; color: #cbd5e1; }
         body.dark-mode .about-title { color: #f8fafc; }
-        body.dark-mode .about-limit { color: #f8fafc; } /* FIX: Key Features Text White in Dark Mode */
+        body.dark-mode .about-limit { color: #f8fafc; }
         body.dark-mode .new-feature-list li { color: #cbd5e1; }
         body.dark-mode .leaflet-popup-content-wrapper { background: #1e293b; }
         body.dark-mode .popup-body { background: #1e293b; color: #cbd5e1; }
         body.dark-mode .info-row { color: #cbd5e1; }
         body.dark-mode .track-link { background: #334155; color: #f8fafc; }
-        body.dark-mode .map-bus-label { background: #ffffff; color: #0f172a; border-color: #ffffff; }
     </style>
 </head>
 <body>
@@ -532,24 +527,22 @@
                         // CREATE SMART MAP LABEL (e.g. "12" or "B1")
                         let mapLabelText = "";
                         if (bus.name.startsWith("Bus ")) {
-                            // Extract just the number: "Bus 12: Tongi" -> "12"
                             mapLabelText = bus.name.split(":")[0].replace("Bus", "").trim(); 
                         } else if (bus.name.startsWith("BRTC ")) {
-                            // Extract number and add B: "BRTC 02" -> "B2"
                             mapLabelText = "B" + bus.name.replace("BRTC", "").trim().replace(/^0+/, ""); 
                         } else {
                             mapLabelText = bus.name;
                         }
 
-                        // CIRCULAR LABEL POSITIONED IN MIDDLE OF BUS
+                        // CIRCULAR CENTERED LABEL (ROTATION APPLIED TO IMAGE, NOT LABEL)
                         const customIcon = L.divIcon({ 
                             className: 'custom-bus-icon', 
                             html: `
                             <div class="bus-icon-wrapper">
                                 <img src="${busImgSrc}" class="bus-img-top" id="img-${bus.id}" style="transform: rotate(${bus.course}deg);">
-                                <div class="map-bus-label">${mapLabelText}</div>
+                                <div class="map-bus-label" style="background: ${busColor};">${mapLabelText}</div>
                             </div>`, 
-                            iconSize: [40, 60], iconAnchor: [20, 30], popupAnchor: [0, -25] 
+                            iconSize: [44, 44], iconAnchor: [22, 22], popupAnchor: [0, -20] 
                         });
 
                         if (mapMarkersObj[bus.id]) {
@@ -562,13 +555,13 @@
 
                 isSidebarBuilt = true;
 
-                // Update Dashboard Status
+                // Update Dashboard Status with Scanned Counter
                 const statusEl = document.getElementById('status-text');
                 if (activeCount > 0) {
-                    statusEl.innerText = `✅ Active: ${activeCount} Buses`;
+                    statusEl.innerHTML = `🔍 Scanned: <b>${fleet.length}</b> &nbsp;|&nbsp; ✅ Active: <b>${activeCount}</b>`;
                     statusEl.style.color = "#059669";
                 } else {
-                    statusEl.innerText = "⚠️ No Active Buses";
+                    statusEl.innerHTML = `🔍 Scanned: <b>${fleet.length}</b> &nbsp;|&nbsp; ⚠️ Active: <b>0</b>`;
                     statusEl.style.color = "#ef4444";
                 }
             } catch (e) {
@@ -587,7 +580,7 @@
             if (isNightTime()) {
                 document.getElementById('floating-night-notice').style.display = 'block';
                 document.getElementById('night-notice-sidebar').style.display = 'block';
-                document.getElementById('status-text').innerText = "🌙 Offline";
+                document.getElementById('status-text').innerHTML = "🌙 Offline for Night";
             } else {
                 document.getElementById('floating-night-notice').style.display = 'none';
                 document.getElementById('night-notice-sidebar').style.display = 'none';
