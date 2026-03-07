@@ -37,7 +37,6 @@
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         h2 { margin: 0; color: #0f172a; font-size: 16px; font-weight: 800; transition: color 0.3s; }
         
-        /* ORIGINAL STATUS TEXT (NO SCANNING) */
         #status-text { font-size: 12px; font-weight: 700; background: #f1f5f9; padding: 5px 12px; border-radius: 12px; transition: background 0.3s, color 0.3s; white-space: nowrap; text-align: center; }
         
         .loc-btn { margin-top: 8px; width: 100%; padding: 8px; background: #2563eb; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.3s; }
@@ -92,55 +91,15 @@
         .leaflet-container a.leaflet-popup-close-button:hover { background: rgba(0, 0, 0, 0.7) !important; color: white !important; }
         
         /* PERFECT CENTERED FLEXBOX ALIGNMENT FOR MAP ICON */
-        .bus-icon-wrapper { 
-            position: relative; 
-            width: 40px; 
-            height: 60px; 
-        } 
-        /* The wrapper holding the SVG rotates, keeping image perfectly dead center */
-        .bus-rotate-wrapper {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 40px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.5s linear;
-        }
-        .bus-img-top { 
-            width: 34px; 
-            height: 60px; 
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); 
-        }
+        .bus-icon-wrapper { position: relative; width: 40px; height: 60px; } 
+        .bus-rotate-wrapper { position: absolute; top: 0; left: 0; width: 40px; height: 60px; display: flex; align-items: center; justify-content: center; transition: transform 0.5s linear; }
+        .bus-img-top { width: 34px; height: 60px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
         
-        /* The text sits in an identical un-rotated box on top, nudged to the left perfectly */
         .map-bus-label { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 40px; 
-            height: 60px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            color: #ffffff; 
-            font-size: 12px; /* Set smaller as requested */
-            font-family: 'Outfit', sans-serif;
-            font-weight: 900; 
-            z-index: 10; 
-            white-space: nowrap; 
-            /* Push text left visually so it isn't offset to the right edge */
-            padding-right: 2px;
-            padding-bottom: 2px; 
-            /* Heavy black outline so text works on any bus color */
-            text-shadow: 
-                -1px -1px 0 #000,  
-                 1px -1px 0 #000,
-                -1px  1px 0 #000,
-                 1px  1px 0 #000,
-                 0px  2px 4px rgba(0,0,0,0.8);
+            position: absolute; top: 0; left: 0; width: 40px; height: 60px; display: flex; align-items: center; justify-content: center; 
+            color: #ffffff; font-size: 12px; font-family: 'Outfit', sans-serif; font-weight: 900; z-index: 10; white-space: nowrap; 
+            padding-right: 2px; padding-bottom: 2px; 
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0px 2px 4px rgba(0,0,0,0.8);
             pointer-events: none; 
         }
         
@@ -154,6 +113,11 @@
         .new-feature-list { list-style: none; padding: 0; margin: 5px 0; }
         .new-feature-list li { padding-left: 20px; position: relative; margin-bottom: 6px; font-size: 12px; line-height: 1.4; transition: color 0.3s; }
         .new-feature-list li:before { content: '✨'; position: absolute; left: 0; top: 0; }
+
+        /* WHAT'S NEW COLLAPSIBLE SECTION */
+        .whats-new-toggle { margin-top: 15px; background: #e0e7ff; color: #3730a3; padding: 10px 12px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        .whats-new-toggle:hover { background: #c7d2fe; }
+        #whats-new-content { display: none; padding: 10px 5px 0 5px; }
 
         /* LIVE USER BLUE DOT CSS */
         .user-loc-dot { width: 16px; height: 16px; background-color: #3b82f6; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(59, 130, 246, 0.8); position: relative; z-index: 2; }
@@ -174,7 +138,7 @@
         body.dark-mode .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
         body.dark-mode .dashboard, body.dark-mode .sidebar, body.dark-mode .menu-btn { background: #1e293b; color: #f8fafc; }
         body.dark-mode .dashboard h2, body.dark-mode .sidebar-header h2, body.dark-mode .bus-name { color: #f8fafc; }
-        body.dark-mode #status-text { background: #334155; }
+        body.dark-mode #status-text { background: #334155; color: #cbd5e1 !important; }
         body.dark-mode .bus-list-item { background: #334155; color: #cbd5e1; }
         body.dark-mode .bus-list-item:hover { background: #475569; }
         body.dark-mode .sidebar-header { border-color: #334155; }
@@ -190,6 +154,8 @@
         body.dark-mode .popup-body { background: #1e293b; color: #cbd5e1; }
         body.dark-mode .info-row { color: #cbd5e1; }
         body.dark-mode .track-link { background: #334155; color: #f8fafc; }
+        body.dark-mode .whats-new-toggle { background: #1e3a8a; color: #bfdbfe; }
+        body.dark-mode .whats-new-toggle:hover { background: #233876; }
     </style>
 </head>
 <body>
@@ -234,6 +200,24 @@
                 <li><b>Mobile-Optimized:</b> Designed to work smoothly on your smartphone so you can track your ride while on the go.</li>
             </ul>
 
+            <div class="whats-new-toggle" onclick="toggleWhatsNew()">
+                <span>🚀 What's New in V3.0</span>
+                <span id="whats-new-icon">▼</span>
+            </div>
+            <div id="whats-new-content">
+                <ul class="new-feature-list">
+                    <li><b>Live Compass:</b> "Locate Me" features a rotating blue beam showing your exact direction.</li>
+                    <li><b>Embedded Labels:</b> Bus numbers sit perfectly centered on map icons for instant reading.</li>
+                    <li><b>True Dark Mode:</b> A sleek menu switch automatically darkens the app and map tiles.</li>
+                    <li><b>Sidebar Search:</b> Instantly find specific buses or routes without scrolling.</li>
+                    <li><b>Dynamic Colors:</b> Icons and dots accurately reflect running, stopped, or inactive states.</li>
+                    <li><b>Compact UI:</b> The top dashboard is now a sleek pill, freeing up map space.</li>
+                    <li><b>Cleaner Popups:</b> Info cards are tidier and automatically hide empty details.</li>
+                    <li><b>Readable Times:</b> Inactive durations are formatted cleanly (e.g., "Inactive for 22h 06m").</li>
+                    <li><b>Anti-Lag Engine:</b> The rebuilt backend fetches all buses instantly, preventing rush-hour lag.</li>
+                </ul>
+            </div>
+
             <div class="about-credits">Developed By: <a href="https://www.facebook.com/NabilShazzad" target="_blank" style="color: #2563eb; text-decoration: none;"><b>Shazzad Hossain Nabil (TE_221)</b></a> <br>Assisted by: <b>Google Gemini AI</b><div id="visitor-count" class="visitor-text">Total Visitors: ...</div></div>
         </div>
     </div>
@@ -268,6 +252,19 @@
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function toggleAbout() { const box = document.getElementById('about-box'); box.style.display = (box.style.display === "block") ? "none" : "block"; }
+        
+        // --- WHATS NEW TOGGLE ---
+        function toggleWhatsNew() {
+            const content = document.getElementById('whats-new-content');
+            const icon = document.getElementById('whats-new-icon');
+            if (content.style.display === 'block') {
+                content.style.display = 'none';
+                icon.innerText = '▼';
+            } else {
+                content.style.display = 'block';
+                icon.innerText = '▲';
+            }
+        }
         
         function filterSidebar() {
             const query = document.getElementById('search-box').value.toLowerCase();
@@ -554,12 +551,11 @@
                             mapLabelText = bus.name;
                         }
 
-                        /* NEW FLEXBOX WRAPPER: GUARANTEES PERFECT CENTERING */
                         const customIcon = L.divIcon({ 
                             className: 'custom-bus-icon', 
                             html: `
                             <div class="bus-icon-wrapper">
-                                <div class="bus-rotate-wrapper" id="img-${bus.id}" style="transform: rotate(${bus.course}deg);">
+                                <div class="bus-rotate-wrapper" style="transform: rotate(${bus.course}deg);">
                                     <img src="${busImgSrc}" class="bus-img-top">
                                 </div>
                                 <div class="map-bus-label">${mapLabelText}</div>
@@ -577,7 +573,6 @@
 
                 isSidebarBuilt = true;
 
-                // REVERTED TO ORIGINAL SIMPLE STATUS TEXT
                 if (activeCount > 0) {
                     statusEl.innerText = `✅ Active: ${activeCount} Buses`;
                     statusEl.style.color = document.body.classList.contains('dark-mode') ? "#10b981" : "#059669";
