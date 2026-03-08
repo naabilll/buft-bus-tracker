@@ -13,6 +13,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BUFT Bus Tracker V3.0</title>
     
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="logo.png">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
@@ -176,6 +180,8 @@
                 <button class="close-btn" onclick="toggleSidebar()">×</button>
             </div>
         </div>
+
+        <button id="install-app-btn" style="display: none; background: #10b981; color: white; border: none; padding: 10px; border-radius: 10px; font-family: 'Outfit'; font-weight: 800; font-size: 14px; cursor: pointer; margin-bottom: 15px; width: 100%; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); transition: 0.3s;">📲 Install App to Home Screen</button>
         
         <input type="text" id="search-box" placeholder="Search bus..." onkeyup="filterSidebar()">
         
@@ -631,6 +637,34 @@
         function closeErrorPopup() { document.getElementById('error-popup').style.display = 'none'; }
 
         fetch("https://api.counterapi.dev/v1/buft-tracker-nabil/view/up").then(res => res.json()).then(data => { const el = document.getElementById('visitor-count'); if(el) el.innerText = `Total Visitors: ${data.count}`; }).catch(e => {});
+
+        // --- PWA INSTALL APP LOGIC ---
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-app-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block'; 
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt !== null) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                    installBtn.style.display = 'none'; 
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Registration failed: ', err));
+            });
+        }
     </script>
 </body>
 </html>
