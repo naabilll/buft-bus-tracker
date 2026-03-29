@@ -615,19 +615,20 @@
         checkTimeAndFetch();
         setInterval(checkTimeAndFetch, 5000); 
 
+        // --- 15 SECOND FIX UPDATED HERE ---
         let hasAlerted = false;
         setTimeout(() => {
             const activeCount = document.querySelectorAll('.status-dot.active').length;
             if (activeCount === 0 && !hasAlerted) {
                 hasAlerted = true;
-                console.log("🚨 10s passed with 0 buses. Pinging server alarm...");
+                console.log("🚨 15s passed with 0 buses. Pinging server alarm...");
                 fetch(`${SERVER}/send-alert`).catch(e => console.log("Alarm Error:", e));
                 
                 if (!isNightTime()) {
                     document.getElementById('error-popup').style.display = 'flex';
                 }
             }
-        }, 10000); 
+        }, 15000); 
 
         function notifyDeveloperUI(btn) {
             btn.innerText = "✅ Notification Sent!";
