@@ -19,7 +19,7 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
 
     <style>
         * { box-sizing: border-box; }
@@ -128,18 +128,43 @@
         .user-loc-dot::after { content: ''; position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px; background: rgba(59, 130, 246, 0.4); border-radius: 50%; animation: pulse-blue 2s infinite; }
         @keyframes pulse-blue { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
 
-        /* --- THEMED LOADING POPUP (REPLACED TIMEOUT GIMMICK) --- */
+        /* --- THEMED LOADING POPUP (UPDATED) --- */
         .error-popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 99999; justify-content: center; align-items: center; font-family: 'Outfit', sans-serif; }
-        .error-popup-box { background: white; padding: 25px; border-radius: 24px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: pop-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .error-popup-title { color: #2563eb; font-size: 19px; font-weight: 800; margin-bottom: 12px; line-height: 1.4; }
-        .error-popup-text { color: #475569; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+        .error-popup-box { background: white; padding: 25px 20px; border-radius: 24px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: pop-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         
-        .bus-loader-container { position: relative; width: 100%; height: 60px; margin-bottom: 15px; overflow: hidden; background: #f1f5f9; border-radius: 12px; transition: background 0.3s; }
-        .moving-bus { position: absolute; width: 50px; left: -60px; top: 10px; animation: drive 3s linear infinite; }
-        @keyframes drive { 0% { left: -60px; } 100% { left: 100%; } }
+        /* APPLYING THE BIJOY-STYLE FONT */
+        .error-popup-title { font-family: 'Tiro Bangla', serif; color: #2563eb; font-size: 22px; font-weight: 700; margin-bottom: 12px; line-height: 1.4; }
+        .error-popup-text { font-family: 'Tiro Bangla', serif; color: #475569; font-size: 15px; margin-bottom: 20px; line-height: 1.6; }
+        .countdown-circle { font-family: 'Tiro Bangla', serif; font-size: 42px; font-weight: 700; color: #2563eb; margin: 10px 0; }
         
-        .countdown-circle { font-size: 32px; font-weight: 900; color: #2563eb; margin: 10px 0; }
+        /* THE NEW PROGRESS BUS ANIMATION */
+        .bus-loader-container { position: relative; width: 100%; height: 50px; margin-bottom: 15px; background: #f1f5f9; border-radius: 12px; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); transition: background 0.3s; }
         
+        .moving-bus-wrapper { 
+            position: absolute; 
+            left: 0%; /* Start exactly on the left */
+            top: 10px; 
+            display: flex; 
+            align-items: center; 
+            transition: left 1s linear; /* Smooth 1-second slide to match the JS timer */
+            width: 40px; 
+            z-index: 2;
+        }
+        
+        .moving-bus { width: 40px; z-index: 3; position: relative; }
+        
+        /* FIRECRACKER EXHAUST */
+        .exhaust { position: absolute; left: -10px; top: 8px; width: 15px; height: 15px; z-index: 1; display: block; }
+        .spark { position: absolute; background: #f97316; height: 2px; width: 6px; border-radius: 2px; opacity: 0; }
+        .spark:nth-child(1) { top: 0px; animation: spark-fly 0.4s infinite linear; }
+        .spark:nth-child(2) { top: 5px; background: #fbbf24; animation: spark-fly 0.5s infinite linear 0.2s; }
+        .spark:nth-child(3) { top: 10px; background: #ef4444; animation: spark-fly 0.3s infinite linear 0.1s; }
+        
+        @keyframes spark-fly { 
+            0% { transform: translateX(0px); opacity: 1; } 
+            100% { transform: translateX(-15px); opacity: 0; } 
+        }
+
         .error-popup-close { margin-top: 15px; color: #94a3b8; font-size: 13px; cursor: pointer; font-weight: 600; text-decoration: underline; display: inline-block; padding: 5px; }
 
         /* --- DARK MODE CSS --- */
@@ -243,7 +268,12 @@
             <div class="error-popup-title">অনুগ্রহ করে ১ মিনিট অপেক্ষা করুন।</div>
             
             <div class="bus-loader-container">
-                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB4PSIyMCIgeT0iNDAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIzMCIgcng9IjUiIGZpbGw9IiMyNTYzZWIiLz48cmVjdCB4PSIyNSIgeT0iNDUiIHdpZHRoPSIxNSIgaGVpZ2h0PSIxMCIgZmlsbD0iI2FmZGVmZiIvPjxyZWN0IHg9IjYwIiB5PSI0NSIgd2lkdGg9IjE1IiBoZWlnaHQ9IjEwIiBmaWxsPSIjYWZkZWZmIi8+PGNpcmNsZSBjeD0iMzAiIGN5PSI3MCIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjcwIiBjeT0iNzAiIHI9IjUiIGZpbGw9IiMzMzMiLz48L3N2Zz4=" class="moving-bus" alt="Loading Bus">
+                <div id="moving-bus-wrapper" class="moving-bus-wrapper">
+                    <div class="exhaust" id="bus-exhaust">
+                        <div class="spark"></div><div class="spark"></div><div class="spark"></div>
+                    </div>
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB4PSIyMCIgeT0iNDAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIzMCIgcng9IjUiIGZpbGw9IiMyNTYzZWIiLz48cmVjdCB4PSIyNSIgeT0iNDUiIHdpZHRoPSIxNSIgaGVpZ2h0PSIxMCIgZmlsbD0iI2FmZGVmZiIvPjxyZWN0IHg9IjYwIiB5PSI0NSIgd2lkdGg9IjE1IiBoZWlnaHQ9IjEwIiBmaWxsPSIjYWZkZWZmIi8+PGNpcmNsZSBjeD0iMzAiIGN5PSI3MCIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjcwIiBjeT0iNzAiIHI9IjUiIGZpbGw9IiMzMzMiLz48L3N2Zz4=" class="moving-bus" alt="Loading Bus">
+                </div>
             </div>
 
             <div id="bengali-timer" class="countdown-circle">৫০</div>
@@ -274,12 +304,11 @@
         let mapMarkersObj = {}; 
         let userMarker = null;
         let isSidebarBuilt = false;
-        let popupTimerInterval = null; // Timer variable
+        let popupTimerInterval = null; 
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function toggleAbout() { const box = document.getElementById('about-box'); box.style.display = (box.style.display === "block") ? "none" : "block"; }
         
-        // --- WHATS NEW TOGGLE ---
         function toggleWhatsNew() {
             const content = document.getElementById('whats-new-content');
             const icon = document.getElementById('whats-new-icon');
@@ -475,16 +504,34 @@
             return n.toString().split('').map(d => symbols[d]).join('');
         }
 
+        // THE NEW LOGIC FOR THE PROGRESS BUS
         function startCountdown() {
             let timeLeft = 50;
             const display = document.getElementById('bengali-timer');
+            const busWrapper = document.getElementById('moving-bus-wrapper');
+            const exhaust = document.getElementById('bus-exhaust');
+            
             display.innerText = toBengali(timeLeft);
+            
+            // Reset bus to start line and turn on sparks
+            busWrapper.style.left = '0%';
+            exhaust.style.display = 'block';
+
             if (popupTimerInterval) clearInterval(popupTimerInterval);
             
             popupTimerInterval = setInterval(() => {
                 timeLeft--;
                 display.innerText = toBengali(timeLeft);
-                if (timeLeft <= 0) clearInterval(popupTimerInterval);
+                
+                // Map the 50 seconds to the width of the box (0% to 85%)
+                // So the bus smoothly acts like a progress bar!
+                let progressPercentage = ((50 - timeLeft) / 50) * 85;
+                busWrapper.style.left = progressPercentage + '%';
+                
+                if (timeLeft <= 0) {
+                    clearInterval(popupTimerInterval);
+                    exhaust.style.display = 'none'; // Turn off engine sparks at the end
+                }
             }, 1000);
         }
 
@@ -669,14 +716,13 @@
         let hasAlerted = false;
         setTimeout(() => {
             const activeCount = document.querySelectorAll('.status-dot.active').length;
-            // Only trigger if no active buses, hasn't alerted yet, AND it's NOT night time
             if (activeCount === 0 && !hasAlerted && !isNightTime()) {
                 hasAlerted = true;
                 document.getElementById('error-popup').style.display = 'flex';
                 startCountdown(); // Start 50-to-0 Bengali timer
                 fetch(`${SERVER}/send-alert`).catch(e => console.log("Alarm Error:", e));
             }
-        }, 10000); // Trigger at exactly 10 seconds
+        }, 10000); 
 
         fetch("https://api.counterapi.dev/v1/buft-tracker-nabil/view/up").then(res => res.json()).then(data => { const el = document.getElementById('visitor-count'); if(el) el.innerText = `Total Visitors: ${data.count}`; }).catch(e => {});
 
