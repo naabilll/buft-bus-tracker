@@ -62,8 +62,6 @@
         
         #dark-mode-toggle:checked + .slider { background-color: #3b82f6; }
         #dark-mode-toggle:checked + .slider:before { transform: translateX(22px); }
-        #lite-mode-toggle:checked + .slider { background-color: #10b981; }
-        #lite-mode-toggle:checked + .slider:before { transform: translateX(22px); }
         
         .icon-sun, .icon-moon { z-index: 1; display: flex; align-items: center; justify-content: center; width: 12px; }
 
@@ -200,16 +198,6 @@
             <div class="header-actions">
                 <div class="switches-container">
                     <div class="switch-row">
-                        <span class="switch-label" style="color:#10b981;">FAST MODE</span>
-                        <label class="theme-switch" title="Lite Mode (Saves Battery & Data)">
-                            <input type="checkbox" id="lite-mode-toggle" onchange="toggleLiteMode()">
-                            <span class="slider">
-                                <span class="icon-sun" style="font-size:12px;">⚡</span>
-                                <span class="icon-moon" style="font-size:12px;">🐢</span>
-                            </span>
-                        </label>
-                    </div>
-                    <div class="switch-row">
                         <span class="switch-label" style="color:#64748b;">DARK MODE</span>
                         <label class="theme-switch" title="Dark Mode">
                             <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
@@ -255,7 +243,6 @@
             </div>
             <div id="whats-new-content">
                 <ul class="new-feature-list">
-                    <li><b>Lite Mode Engine:</b> Instantly cuts battery usage and processor lag on older Android phones.</li>
                     <li><b>Crowdsourced Capacity:</b> Real-time "Mostly Full" and "Full" passenger reports to help you plan your ride.</li>
                     <li><b>Live Compass:</b> "Locate Me" features a rotating blue beam showing your exact direction.</li>
                     <li><b>Embedded Labels:</b> Bus numbers sit perfectly centered on map icons for instant reading.</li>
@@ -286,7 +273,7 @@
             <div id="bengali-timer" class="countdown-circle">৫০</div>
             
             <div class="error-popup-text">
-                ফ্রি সার্ভার ব্যবহারের কারণে ১৫ মিনিট কেউ সাইটে না থাকলে এটি সাময়িকভাবে বন্ধ (Sleep Mode) হয়ে যায়। তাই নতুন করে ওয়েবসাইট ওপেন করলে প্রথমবার লোড হতে প্রায় ১ মিনিট সময় লাগতে পারে। একবার লোড হয়ে গেলে আর কোনো সমস্যা হবে বোমা হবে না।
+                ফ্রি সার্ভার ব্যবহারের কারণে ১৫ মিনিট কেউ সাইটে না থাকলে এটি সাময়িকভাবে বন্ধ (Sleep Mode) হয়ে যায়। তাই নতুন করে ওয়েবসাইট ওপেন করলে প্রথমবার লোড হতে প্রায় ১ মিনিট সময় লাগতে পারে। একবার লোড হয়ে গেলে আর কোনো সমস্যা হবে না।
             </div>
             
             <div class="error-popup-close" onclick="closeErrorPopup()">Dismiss</div>
@@ -319,9 +306,6 @@
         let userMarker = null;
         let isSidebarBuilt = false;
         let popupTimerInterval = null; 
-        
-        // Background Tracking Loop Variables
-        let trackingInterval = null;
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function toggleAbout() { const box = document.getElementById('about-box'); box.style.display = (box.style.display === "block") ? "none" : "block"; }
@@ -356,39 +340,6 @@
             localStorage.setItem('darkMode', isDark ? '1' : '0');
             document.getElementById('dark-mode-toggle').checked = isDark;
         }
-
-        // --- NEW: LITE MODE LOGIC ---
-        let isLiteMode = localStorage.getItem('liteMode') === '1';
-        if(isLiteMode) document.getElementById('lite-mode-toggle').checked = true;
-        
-        function toggleLiteMode() {
-            isLiteMode = !isLiteMode;
-            localStorage.setItem('liteMode', isLiteMode ? '1' : '0');
-            document.getElementById('lite-mode-toggle').checked = isLiteMode;
-            
-            // Force a map redraw to instantly switch all icons to Lite Mode or Normal Mode
-            for (let key in mapMarkersObj) {
-                mapMarkersObj[key]._busHash = "force-redraw";
-            }
-            fetchFleet(); 
-            
-            if (isLiteMode && orientationHandler) {
-                const beam = document.getElementById('user-direction-beam');
-                if(beam) beam.style.display = 'none';
-            }
-        }
-
-        // --- SMART PAUSE WHEN APP IS MINIMIZED (Lite Mode Boost) ---
-        document.addEventListener("visibilitychange", () => {
-            if (isLiteMode) {
-                if (document.hidden) {
-                    if(trackingInterval) clearInterval(trackingInterval);
-                } else {
-                    checkTimeAndFetch();
-                    trackingInterval = setInterval(checkTimeAndFetch, 5000);
-                }
-            }
-        });
 
         function focusBus(id) {
             if (mapMarkersObj[id]) { 
@@ -426,8 +377,6 @@
         }
 
         function handleOrientation(event) {
-            if (isLiteMode) return; 
-
             let compassHeading = null;
             if (event.webkitCompassHeading) {
                 compassHeading = event.webkitCompassHeading;
@@ -646,12 +595,16 @@
                 const fleet = await res.json();
                 globalFleetData = fleet;
                 
-                if (fleet.length > 0) closeErrorPopup(); 
+                if (fleet.length > 0) {
+                    closeErrorPopup(); 
+                }
 
                 let activeCount = 0;
                 const listContainer = document.getElementById('bus-list-container');
 
-                if (!isSidebarBuilt && fleet.length > 0) listContainer.innerHTML = ""; 
+                if (!isSidebarBuilt && fleet.length > 0) {
+                    listContainer.innerHTML = ""; 
+                }
 
                 fleet.forEach(bus => {
                     let busColor = '#94a3b8'; 
@@ -664,9 +617,15 @@
                         dotColor = busColor;
                         activeCount++;
                     } else if (bus.status === "Stopped") {
-                        busColor = '#ef4444'; badgeBg = '#fee2e2'; dotColor = busColor; activeCount++;
+                        busColor = '#ef4444'; 
+                        badgeBg = '#fee2e2';
+                        dotColor = busColor;
+                        activeCount++;
                     } else if (bus.status === "Idle") {
-                        busColor = '#f59e0b'; badgeBg = '#fef3c7'; dotColor = busColor; activeCount++;
+                        busColor = '#f59e0b'; 
+                        badgeBg = '#fef3c7';
+                        dotColor = busColor;
+                        activeCount++;
                     }
 
                     if (!isSidebarBuilt) {
@@ -681,135 +640,108 @@
                     const dot = document.getElementById(`dot-${bus.id}`);
                     if (dot) {
                         if (bus.status !== "Inactive" && bus.status !== "Unknown") {
-                            dot.classList.add('active'); dot.style.background = dotColor; dot.style.boxShadow = `0 0 5px ${dotColor}`;
+                            dot.classList.add('active');
+                            dot.style.background = dotColor;
+                            dot.style.boxShadow = `0 0 5px ${dotColor}`;
                         } else {
-                            dot.classList.remove('active'); dot.style.background = '#ccc'; dot.style.boxShadow = 'none';
+                            dot.classList.remove('active');
+                            dot.style.background = '#ccc';
+                            dot.style.boxShadow = 'none';
                         }
                     }
 
                     if (bus.lat > 0 && bus.lng > 0) {
                         
-                        let busHash = `${bus.lat},${bus.lng},${bus.status},${bus.capacityStatus}`;
-                        let shouldUpdateDOM = true;
+                        let formattedSince = bus.since || "--";
+                        if (formattedSince.includes(":")) {
+                            formattedSince = formattedSince.replace(":", "h ") + "m";
+                        }
+                        let durationText = bus.status === 'Inactive' ? `Inactive for ${formattedSince}` : `Since ${formattedSince}`;
                         
-                        if (isLiteMode && mapMarkersObj[bus.id] && mapMarkersObj[bus.id]._busHash === busHash) {
-                            shouldUpdateDOM = false; 
+                        let driverName = bus.driver || "--";
+                        let mobileNo = bus.phone || "--";
+
+                        // --- CAPACITY BADGES & WARNINGS (MOSTLY FULL UPDATED) ---
+                        let capacityBadgeHtml = '';
+                        let capacityWarningHtml = '';
+                        if (bus.capacityStatus === 'Full') {
+                            capacityBadgeHtml = `<div class="capacity-map-badge">FULL</div>`;
+                            capacityWarningHtml = `<div style="background:#fee2e2; color:#b91c1c; padding:8px; border-radius:8px; font-size:12px; font-weight:800; text-align:center; margin-bottom:10px; border:1px solid #fca5a5;">⚠️ BUS REPORTED FULL</div>`;
+                        } else if (bus.capacityStatus === 'Maybe Full') {
+                            capacityBadgeHtml = `<div class="capacity-map-badge maybe">MOSTLY FULL</div>`;
+                            capacityWarningHtml = `<div style="background:#ffedd5; color:#c2410c; padding:8px; border-radius:8px; font-size:12px; font-weight:800; text-align:center; margin-bottom:10px; border:1px solid #fdba74;">⚠️ BUS ALMOST FULL</div>`;
                         }
 
-                        if (shouldUpdateDOM) {
-                            let formattedSince = bus.since || "--";
-                            if (formattedSince.includes(":")) {
-                                formattedSince = formattedSince.replace(":", "h ") + "m";
-                            }
-                            let durationText = bus.status === 'Inactive' ? `Inactive for ${formattedSince}` : `Since ${formattedSince}`;
-                            let driverName = bus.driver || "--";
-                            let mobileNo = bus.phone || "--";
+                        // --- FIXED "NOT FULL" BUTTON LOGIC ---
+                        let reportButtonsHtml = '';
+                        if (bus.capacityStatus === 'Full' || bus.capacityStatus === 'Maybe Full') {
+                            reportButtonsHtml = `
+                            <div class="report-actions">
+                                <button class="report-btn" onclick="submitCapacityReport('${bus.id}', this, 'full')">📈 Full</button>
+                                <button class="report-btn unreport-btn" onclick="submitCapacityReport('${bus.id}', this, 'not-full')">📉 Not Full</button>
+                            </div>`;
+                        } else {
+                            reportButtonsHtml = `
+                            <button class="report-btn" style="width:100%; margin-top:10px;" onclick="submitCapacityReport('${bus.id}', this, 'full')">🚌 Report Bus as Full</button>`;
+                        }
 
-                            // --- CAPACITY BADGES & WARNINGS ---
-                            let capacityWarningHtml = '';
-                            if (bus.capacityStatus === 'Full') {
-                                capacityWarningHtml = `<div style="background:#fee2e2; color:#b91c1c; padding:8px; border-radius:8px; font-size:12px; font-weight:800; text-align:center; margin-bottom:10px; border:1px solid #fca5a5;">⚠️ BUS REPORTED FULL</div>`;
-                            } else if (bus.capacityStatus === 'Maybe Full') {
-                                capacityWarningHtml = `<div style="background:#ffedd5; color:#c2410c; padding:8px; border-radius:8px; font-size:12px; font-weight:800; text-align:center; margin-bottom:10px; border:1px solid #fdba74;">⚠️ BUS MOSTLY FULL</div>`;
-                            }
-
-                            // --- FIXED "NOT FULL" BUTTON LOGIC ---
-                            let reportButtonsHtml = '';
-                            if (bus.capacityStatus === 'Full' || bus.capacityStatus === 'Maybe Full') {
-                                // If already marked full, show both options so students can correct it
-                                reportButtonsHtml = `
-                                <div class="report-actions">
-                                    <button class="report-btn" onclick="submitCapacityReport('${bus.id}', this, 'full')">📈 Full</button>
-                                    <button class="report-btn unreport-btn" onclick="submitCapacityReport('${bus.id}', this, 'not-full')">📉 Not Full</button>
-                                </div>`;
-                            } else {
-                                // If normal, only show the button to report it full
-                                reportButtonsHtml = `
-                                <button class="report-btn" style="width:100%; margin-top:10px;" onclick="submitCapacityReport('${bus.id}', this, 'full')">🚌 Report Bus as Full</button>`;
-                            }
-
-                            const popup = `
-                                <div class="popup-header" style="background:${busColor}">
-                                    <span>🚌 ${bus.name}</span>
+                        const popup = `
+                            <div class="popup-header" style="background:${busColor}">
+                                <span>🚌 ${bus.name}</span>
+                            </div>
+                            <div class="popup-body">
+                                ${capacityWarningHtml}
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                    <span class="status-badge" style="background:${badgeBg}; color:${busColor};">
+                                        ${bus.status}
+                                    </span>
+                                    <span style="font-size:12px; font-weight:700; color:#64748b;">
+                                        ⏳ ${durationText}
+                                    </span>
                                 </div>
-                                <div class="popup-body">
-                                    ${capacityWarningHtml}
-                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                                        <span class="status-badge" style="background:${badgeBg}; color:${busColor};">${bus.status}</span>
-                                        <span style="font-size:12px; font-weight:700; color:#64748b;">⏳ ${durationText}</span>
-                                    </div>
-                                    <div class="info-row"><span class="info-icon">👤</span> <b>${driverName}</b></div>
-                                    <div class="info-row"><span class="info-icon">📞</span> <a href="tel:${mobileNo}" style="color:#2563eb; text-decoration:none; font-weight:700;">${mobileNo}</a></div>
-                                    <div class="info-row"><span class="info-icon">🚀</span> <b>${bus.speed} km/h</b></div>
-                                    <div class="info-row"><span class="info-icon">📍</span> ${bus.address}</div>
-                                    <div style="font-size:10px; color:#94a3b8; text-align:right; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:6px;">Updated: ${fixTime(bus.updated)}</div>
-                                    <a href="https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}" target="_blank" class="track-link">🔗 Open Full Live Tracker</a>
-                                    
-                                    ${reportButtonsHtml}
-                                </div>`;
-                            
-                            let mapLabelText = "";
-                            if (bus.name.startsWith("Bus ")) {
-                                mapLabelText = bus.name.split(":")[0].replace("Bus", "").trim(); 
-                            } else if (bus.name.startsWith("BRTC ")) {
-                                mapLabelText = "B" + bus.name.replace("BRTC", "").trim().replace(/^0+/, ""); 
-                            } else { mapLabelText = bus.name; }
 
-                            // --- LITE MODE TRUE SVG REPLACEMENT ---
-                            let customIconHtml = '';
-                            let iconDimensions = [40, 60];
-                            let iconAnch = [20, 30];
-                            let popAnch = [0, -25];
+                                <div class="info-row"><span class="info-icon">👤</span> <b>${driverName}</b></div>
+                                <div class="info-row"><span class="info-icon">📞</span> <a href="tel:${mobileNo}" style="color:#2563eb; text-decoration:none; font-weight:700;">${mobileNo}</a></div>
+                                <div class="info-row"><span class="info-icon">🚀</span> <b>${bus.speed} km/h</b></div>
+                                <div class="info-row"><span class="info-icon">📍</span> ${bus.address}</div>
 
-                            if (isLiteMode) {
-                                // Lite Mode: Replaces heavy SVG with a fast CSS circle
-                                let liteBadge = '';
-                                if (bus.capacityStatus === 'Full') {
-                                    liteBadge = `<div style="position:absolute; top:-4px; right:-4px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:1px solid white;"></div>`;
-                                } else if (bus.capacityStatus === 'Maybe Full') {
-                                    liteBadge = `<div style="position:absolute; top:-4px; right:-4px; width:10px; height:10px; background:#f97316; border-radius:50%; border:1px solid white;"></div>`;
-                                }
+                                <div style="font-size:10px; color:#94a3b8; text-align:right; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:6px;">
+                                    Updated: ${fixTime(bus.updated)}
+                                </div>
+                                <a href="https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}" target="_blank" class="track-link">🔗 Open Full Live Tracker</a>
                                 
-                                customIconHtml = `
-                                <div style="position:relative; width:24px; height:24px; background:${busColor}; border-radius:50%; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center;">
-                                    <span style="color:white; font-size:9px; font-weight:900;">${mapLabelText.substring(0,3)}</span>
-                                    ${liteBadge}
-                                </div>`;
-                                
-                                iconDimensions = [24, 24];
-                                iconAnch = [12, 12];
-                                popAnch = [0, -10];
-                            } else {
-                                // Normal Mode: Renders the full SVG
-                                let capacityBadgeHtml = '';
-                                if (bus.capacityStatus === 'Full') { capacityBadgeHtml = `<div class="capacity-map-badge">FULL</div>`; }
-                                else if (bus.capacityStatus === 'Maybe Full') { capacityBadgeHtml = `<div class="capacity-map-badge maybe">MOSTLY FULL</div>`; }
-                                
-                                const svgString = getBusSVG(busColor);
-                                const busImgSrc = "data:image/svg+xml;base64," + btoa(svgString);
-                                customIconHtml = `
-                                <div class="bus-icon-wrapper">
-                                    ${capacityBadgeHtml}
-                                    <div class="bus-rotate-wrapper" style="transform: rotate(${bus.course}deg);">
-                                        <img src="${busImgSrc}" class="bus-img-top">
-                                    </div>
-                                    <div class="map-bus-label">${mapLabelText}</div>
-                                </div>`;
-                            }
+                                ${reportButtonsHtml}
+                            </div>`;
+                        
+                        const svgString = getBusSVG(busColor);
+                        const busImgSrc = "data:image/svg+xml;base64," + btoa(svgString);
 
-                            const customIcon = L.divIcon({ 
-                                className: 'custom-bus-icon', 
-                                html: customIconHtml, 
-                                iconSize: iconDimensions, iconAnchor: iconAnch, popupAnchor: popAnch 
-                            });
+                        let mapLabelText = "";
+                        if (bus.name.startsWith("Bus ")) {
+                            mapLabelText = bus.name.split(":")[0].replace("Bus", "").trim(); 
+                        } else if (bus.name.startsWith("BRTC ")) {
+                            mapLabelText = "B" + bus.name.replace("BRTC", "").trim().replace(/^0+/, ""); 
+                        } else {
+                            mapLabelText = bus.name;
+                        }
 
-                            if (mapMarkersObj[bus.id]) {
-                                mapMarkersObj[bus.id].setLatLng([bus.lat, bus.lng]).setPopupContent(popup).setIcon(customIcon);
-                                mapMarkersObj[bus.id]._busHash = busHash; 
-                            } else { 
-                                mapMarkersObj[bus.id] = L.marker([bus.lat, bus.lng], {icon: customIcon}).addTo(map).bindPopup(popup); 
-                                mapMarkersObj[bus.id]._busHash = busHash; 
-                            }
+                        const customIcon = L.divIcon({ 
+                            className: 'custom-bus-icon', 
+                            html: `
+                            <div class="bus-icon-wrapper">
+                                ${capacityBadgeHtml}
+                                <div class="bus-rotate-wrapper" style="transform: rotate(${bus.course}deg);">
+                                    <img src="${busImgSrc}" class="bus-img-top">
+                                </div>
+                                <div class="map-bus-label">${mapLabelText}</div>
+                            </div>`, 
+                            iconSize: [40, 60], iconAnchor: [20, 30], popupAnchor: [0, -25] 
+                        });
+
+                        if (mapMarkersObj[bus.id]) {
+                            mapMarkersObj[bus.id].setLatLng([bus.lat, bus.lng]).setPopupContent(popup).setIcon(customIcon);
+                        } else { 
+                            mapMarkersObj[bus.id] = L.marker([bus.lat, bus.lng], {icon: customIcon}).addTo(map).bindPopup(popup); 
                         }
                     }
                 });
@@ -834,6 +766,7 @@
         function isNightTime() {
             const dhakaTime = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Dhaka"}));
             const h = dhakaTime.getHours(); const m = dhakaTime.getMinutes();
+            // From 9:30 PM (21:30) until 7:00 AM (07:00)
             return (h > 21) || (h === 21 && m >= 30) || (h < 7);
         }
 
@@ -850,21 +783,23 @@
         }
 
         checkTimeAndFetch();
-        trackingInterval = setInterval(checkTimeAndFetch, 5000); 
+        setInterval(checkTimeAndFetch, 5000); 
 
+        // --- 10 SECOND FIX & BENGALI NOTICE TRIGGER ---
         let hasAlerted = false;
         setTimeout(() => {
             const activeCount = document.querySelectorAll('.status-dot.active').length;
             if (activeCount === 0 && !hasAlerted && !isNightTime()) {
                 hasAlerted = true;
                 document.getElementById('error-popup').style.display = 'flex';
-                startCountdown();
+                startCountdown(); // Start 50-to-0 Bengali timer
                 fetch(`${SERVER}/send-alert`).catch(e => console.log("Alarm Error:", e));
             }
         }, 10000); 
 
         fetch("https://api.counterapi.dev/v1/buft-tracker-nabil/view/up").then(res => res.json()).then(data => { const el = document.getElementById('visitor-count'); if(el) el.innerText = `Total Visitors: ${data.count}`; }).catch(e => {});
 
+        // --- PWA INSTALL APP LOGIC ---
         let deferredPrompt;
         const installBtn = document.getElementById('install-app-btn');
 
