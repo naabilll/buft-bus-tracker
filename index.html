@@ -45,29 +45,29 @@
         .menu-btn { position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 12px 15px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); font-size: 20px; cursor: pointer; z-index: 1001; transition: background 0.3s, color 0.3s; }
         
         /* SIDEBAR */
-        .sidebar { position: fixed; top: 0; left: -320px; width: 320px; height: 100%; background: white; z-index: 9999; transition: left 0.3s ease, background 0.3s; box-shadow: 5px 0 25px rgba(0,0,0,0.1); padding: 20px; overflow-y: auto; }
+        .sidebar { position: fixed; top: 0; left: -340px; width: 320px; height: 100%; background: white; z-index: 9999; transition: left 0.3s ease, background 0.3s; box-shadow: 5px 0 25px rgba(0,0,0,0.1); padding: 20px; overflow-y: auto; }
         .sidebar.open { left: 0; }
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; transition: border-color 0.3s; }
         .sidebar-header h2 { transition: color 0.3s; margin: 0; font-size: 20px; }
         .header-actions { display: flex; gap: 8px; align-items: center; }
         
         /* THEME SLIDER TOGGLES */
-        .theme-switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switches-container { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+        .switch-row { display: flex; align-items: center; gap: 6px; }
+        .switch-label { font-size: 10px; font-weight: 900; letter-spacing: 0.5px; }
+        .theme-switch { position: relative; display: inline-block; width: 46px; height: 24px; }
         .theme-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 30px; display: flex; align-items: center; justify-content: space-between; padding: 0 5px; font-size: 12px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 30px; display: flex; align-items: center; justify-content: space-between; padding: 0 5px; font-size: 11px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         
-        /* Dark Mode Color */
         #dark-mode-toggle:checked + .slider { background-color: #3b82f6; }
-        #dark-mode-toggle:checked + .slider:before { transform: translateX(24px); }
-        
-        /* Lite Mode Color */
+        #dark-mode-toggle:checked + .slider:before { transform: translateX(22px); }
         #lite-mode-toggle:checked + .slider { background-color: #10b981; }
-        #lite-mode-toggle:checked + .slider:before { transform: translateX(24px); }
+        #lite-mode-toggle:checked + .slider:before { transform: translateX(22px); }
         
-        .icon-sun, .icon-moon { z-index: 1; display: flex; align-items: center; justify-content: center; width: 14px; }
+        .icon-sun, .icon-moon { z-index: 1; display: flex; align-items: center; justify-content: center; width: 12px; }
 
-        .close-btn { background: none; border: none; font-size: 26px; cursor: pointer; color: #64748b; padding: 0; transition: color 0.3s; line-height: 1; margin-left: 5px; }
+        .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #64748b; padding: 0; transition: color 0.3s; line-height: 1; margin-left: 8px; }
         
         #search-box { width: 100%; padding: 10px 15px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; font-family: 'Outfit'; font-weight: 600; margin-bottom: 15px; outline: none; transition: border-color 0.2s; }
         #search-box:focus { border-color: #3b82f6; }
@@ -86,17 +86,17 @@
         .leaflet-bottom.leaflet-right { margin-bottom: 90px !important; }
         .leaflet-control-zoom { box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important; border: none !important; }
 
-        /* POPUPS */
+        /* POPUPS - FIXED THE TEXT OVERLAP BUG */
         .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: background 0.3s; }
         .leaflet-popup-content { margin: 0; width: 270px !important; }
-        .popup-header { color: white; padding: 12px 15px; font-weight: 800; font-size: 15px; }
+        /* padding-right: 35px prevents the text from going under the X button */
+        .popup-header { color: white; padding: 12px 35px 12px 15px; font-weight: 800; font-size: 15px; line-height: 1.4; word-wrap: break-word; }
         .popup-body { padding: 15px; background: white; font-family: 'Outfit', sans-serif; transition: background 0.3s; }
         .info-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 13px; color: #334155; transition: color 0.3s; }
         .info-icon { width: 22px; text-align: center; margin-right: 8px; font-size: 14px; }
         .status-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
         .track-link { display: block; margin-top: 12px; text-align: center; background: #e2e8f0; color: #0f172a; padding: 10px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; transition: background 0.2s, color 0.3s; }
         
-        /* NEW REPORT BUTTON CSS */
         .report-actions { display: flex; gap: 8px; margin-top: 10px; }
         .report-btn { flex: 1; background: #ef4444; color: white; border: none; padding: 10px 5px; border-radius: 10px; font-weight: 800; font-size: 12px; font-family: 'Outfit'; cursor: pointer; box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2); transition: 0.2s; white-space: nowrap; }
         .report-btn:active { transform: scale(0.96); }
@@ -118,7 +118,6 @@
             pointer-events: none; 
         }
         
-        /* NEW MAP BADGE FOR FULL BUSES CSS */
         .capacity-map-badge { position: absolute; top: -10px; right: -14px; background: #ef4444; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 900; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 12; border: 2px solid white; animation: pop 0.3s ease; white-space: nowrap; }
         .capacity-map-badge.maybe { background: #f97316; }
 
@@ -133,7 +132,6 @@
         .new-feature-list li { padding-left: 20px; position: relative; margin-bottom: 6px; font-size: 12px; line-height: 1.4; transition: color 0.3s; }
         .new-feature-list li:before { content: '✨'; position: absolute; left: 0; top: 0; }
 
-        /* WHAT'S NEW COLLAPSIBLE SECTION */
         .whats-new-toggle { margin-top: 15px; background: #e0e7ff; color: #3730a3; padding: 10px 12px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
         .whats-new-toggle:hover { background: #c7d2fe; }
         #whats-new-content { display: none; padding: 10px 5px 0 5px; }
@@ -143,10 +141,9 @@
         .user-loc-dot::after { content: ''; position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px; background: rgba(59, 130, 246, 0.4); border-radius: 50%; animation: pulse-blue 2s infinite; }
         @keyframes pulse-blue { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
 
-        /* --- THEMED LOADING POPUP (UPDATED) --- */
+        /* --- THEMED LOADING POPUP --- */
         .error-popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 99999; justify-content: center; align-items: center; font-family: 'Outfit', sans-serif; }
         .error-popup-box { background: white; padding: 25px 20px; border-radius: 24px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: pop-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        
         .error-popup-title { font-family: 'Tiro Bangla', serif; color: #2563eb; font-size: 22px; font-weight: 700; margin-bottom: 12px; line-height: 1.4; }
         .error-popup-text { font-family: 'Tiro Bangla', serif; color: #475569; font-size: 15px; margin-bottom: 20px; line-height: 1.6; }
         .countdown-circle { font-family: 'Tiro Bangla', serif; font-size: 42px; font-weight: 700; color: #2563eb; margin: 10px 0; }
@@ -201,20 +198,28 @@
         <div class="sidebar-header">
             <h2>🚍 Bus List</h2>
             <div class="header-actions">
-                <label class="theme-switch" title="Lite Mode (Saves Battery)">
-                    <input type="checkbox" id="lite-mode-toggle" onchange="toggleLiteMode()">
-                    <span class="slider">
-                        <span class="icon-sun" style="font-size:12px;">⚡</span>
-                        <span class="icon-moon" style="font-size:12px;">🐢</span>
-                    </span>
-                </label>
-                <label class="theme-switch" title="Dark Mode">
-                    <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
-                    <span class="slider">
-                        <span class="icon-sun">☀️</span>
-                        <span class="icon-moon">🌙</span>
-                    </span>
-                </label>
+                <div class="switches-container">
+                    <div class="switch-row">
+                        <span class="switch-label" style="color:#10b981;">FAST MODE</span>
+                        <label class="theme-switch" title="Lite Mode (Saves Battery & Data)">
+                            <input type="checkbox" id="lite-mode-toggle" onchange="toggleLiteMode()">
+                            <span class="slider">
+                                <span class="icon-sun" style="font-size:12px;">⚡</span>
+                                <span class="icon-moon" style="font-size:12px;">🐢</span>
+                            </span>
+                        </label>
+                    </div>
+                    <div class="switch-row">
+                        <span class="switch-label" style="color:#64748b;">DARK MODE</span>
+                        <label class="theme-switch" title="Dark Mode">
+                            <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
+                            <span class="slider">
+                                <span class="icon-sun">☀️</span>
+                                <span class="icon-moon">🌙</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
                 <button class="close-btn" onclick="toggleSidebar()">×</button>
             </div>
         </div>
@@ -281,7 +286,7 @@
             <div id="bengali-timer" class="countdown-circle">৫০</div>
             
             <div class="error-popup-text">
-                ফ্রি সার্ভার ব্যবহারের কারণে ১৫ মিনিট কেউ সাইটে না থাকলে এটি সাময়িকভাবে বন্ধ (Sleep Mode) হয়ে যায়। তাই নতুন করে ওয়েবসাইট ওপেন করলে প্রথমবার লোড হতে প্রায় ১ মিনিট সময় লাগতে পারে। একবার লোড হয়ে গেলে আর কোনো সমস্যা হবে না।
+                ফ্রি সার্ভার ব্যবহারের কারণে ১৫ মিনিট কেউ সাইটে না থাকলে এটি সাময়িকভাবে বন্ধ (Sleep Mode) হয়ে যায়। তাই নতুন করে ওয়েবসাইট ওপেন করলে প্রথমবার লোড হতে প্রায় ১ মিনিট সময় লাগতে পারে। একবার লোড হয়ে গেলে আর কোনো সমস্যা হবে বোমা হবে না।
             </div>
             
             <div class="error-popup-close" onclick="closeErrorPopup()">Dismiss</div>
@@ -361,21 +366,24 @@
             localStorage.setItem('liteMode', isLiteMode ? '1' : '0');
             document.getElementById('lite-mode-toggle').checked = isLiteMode;
             
-            // If turning ON lite mode, instantly remove the compass beam if it exists
+            // Force a map redraw to instantly switch all icons to Lite Mode or Normal Mode
+            for (let key in mapMarkersObj) {
+                mapMarkersObj[key]._busHash = "force-redraw";
+            }
+            fetchFleet(); 
+            
             if (isLiteMode && orientationHandler) {
                 const beam = document.getElementById('user-direction-beam');
                 if(beam) beam.style.display = 'none';
             }
         }
 
-        // --- NEW: SMART PAUSE WHEN APP IS MINIMIZED (Lite Mode Boost) ---
+        // --- SMART PAUSE WHEN APP IS MINIMIZED (Lite Mode Boost) ---
         document.addEventListener("visibilitychange", () => {
             if (isLiteMode) {
                 if (document.hidden) {
-                    // Stop background tracking to save battery
                     if(trackingInterval) clearInterval(trackingInterval);
                 } else {
-                    // Resume tracking immediately
                     checkTimeAndFetch();
                     trackingInterval = setInterval(checkTimeAndFetch, 5000);
                 }
@@ -418,7 +426,6 @@
         }
 
         function handleOrientation(event) {
-            // Invisible Optimization: Disable heavy compass math in Lite Mode
             if (isLiteMode) return; 
 
             let compassHeading = null;
@@ -440,7 +447,6 @@
             }
         }
 
-        // --- NEW: CAPACITY REPORT FUNCTION (With Vote Type) ---
         function submitCapacityReport(busId, btnElement, voteType) {
             if (!navigator.geolocation) { alert("GPS is required to verify you are on the bus."); return; }
             
@@ -457,7 +463,7 @@
                             userLat: position.coords.latitude,
                             userLng: position.coords.longitude,
                             userId: localUserId,
-                            voteType: voteType // Send 'full' or 'not-full'
+                            voteType: voteType
                         };
 
                         const response = await fetch(`${SERVER}/report-capacity`, {
@@ -640,16 +646,12 @@
                 const fleet = await res.json();
                 globalFleetData = fleet;
                 
-                if (fleet.length > 0) {
-                    closeErrorPopup(); 
-                }
+                if (fleet.length > 0) closeErrorPopup(); 
 
                 let activeCount = 0;
                 const listContainer = document.getElementById('bus-list-container');
 
-                if (!isSidebarBuilt && fleet.length > 0) {
-                    listContainer.innerHTML = ""; 
-                }
+                if (!isSidebarBuilt && fleet.length > 0) listContainer.innerHTML = ""; 
 
                 fleet.forEach(bus => {
                     let busColor = '#94a3b8'; 
@@ -662,15 +664,9 @@
                         dotColor = busColor;
                         activeCount++;
                     } else if (bus.status === "Stopped") {
-                        busColor = '#ef4444'; 
-                        badgeBg = '#fee2e2';
-                        dotColor = busColor;
-                        activeCount++;
+                        busColor = '#ef4444'; badgeBg = '#fee2e2'; dotColor = busColor; activeCount++;
                     } else if (bus.status === "Idle") {
-                        busColor = '#f59e0b'; 
-                        badgeBg = '#fef3c7';
-                        dotColor = busColor;
-                        activeCount++;
+                        busColor = '#f59e0b'; badgeBg = '#fef3c7'; dotColor = busColor; activeCount++;
                     }
 
                     if (!isSidebarBuilt) {
@@ -685,20 +681,14 @@
                     const dot = document.getElementById(`dot-${bus.id}`);
                     if (dot) {
                         if (bus.status !== "Inactive" && bus.status !== "Unknown") {
-                            dot.classList.add('active');
-                            dot.style.background = dotColor;
-                            dot.style.boxShadow = `0 0 5px ${dotColor}`;
+                            dot.classList.add('active'); dot.style.background = dotColor; dot.style.boxShadow = `0 0 5px ${dotColor}`;
                         } else {
-                            dot.classList.remove('active');
-                            dot.style.background = '#ccc';
-                            dot.style.boxShadow = 'none';
+                            dot.classList.remove('active'); dot.style.background = '#ccc'; dot.style.boxShadow = 'none';
                         }
                     }
 
                     if (bus.lat > 0 && bus.lng > 0) {
                         
-                        // --- NEW: SMART DOM CACHE (Lite Mode Boost) ---
-                        // Only redraw the HTML if the bus actually changed state or location
                         let busHash = `${bus.lat},${bus.lng},${bus.status},${bus.capacityStatus}`;
                         let shouldUpdateDOM = true;
                         
@@ -712,22 +702,32 @@
                                 formattedSince = formattedSince.replace(":", "h ") + "m";
                             }
                             let durationText = bus.status === 'Inactive' ? `Inactive for ${formattedSince}` : `Since ${formattedSince}`;
-                            
                             let driverName = bus.driver || "--";
                             let mobileNo = bus.phone || "--";
 
-                            // --- CAPACITY BADGES & WARNINGS (MOSTLY FULL UPDATED) ---
-                            let capacityBadgeHtml = '';
+                            // --- CAPACITY BADGES & WARNINGS ---
                             let capacityWarningHtml = '';
                             if (bus.capacityStatus === 'Full') {
-                                capacityBadgeHtml = `<div class="capacity-map-badge">FULL</div>`;
                                 capacityWarningHtml = `<div style="background:#fee2e2; color:#b91c1c; padding:8px; border-radius:8px; font-size:12px; font-weight:800; text-align:center; margin-bottom:10px; border:1px solid #fca5a5;">⚠️ BUS REPORTED FULL</div>`;
                             } else if (bus.capacityStatus === 'Maybe Full') {
-                                capacityBadgeHtml = `<div class="capacity-map-badge maybe">MOSTLY FULL</div>`;
-                                capacityWarningHtml = `<div style="background:#ffedd5; color:#c2410c; padding:8px; border-radius:8px; font-size:12px; font-weight:800; text-align:center; margin-bottom:10px; border:1px solid #fdba74;">⚠️ BUS ALMOST FULL</div>`;
+                                capacityWarningHtml = `<div style="background:#ffedd5; color:#c2410c; padding:8px; border-radius:8px; font-size:12px; font-weight:800; text-align:center; margin-bottom:10px; border:1px solid #fdba74;">⚠️ BUS MOSTLY FULL</div>`;
                             }
 
-                            // POPUP WITH TWO BUTTONS (FULL & NOT FULL)
+                            // --- FIXED "NOT FULL" BUTTON LOGIC ---
+                            let reportButtonsHtml = '';
+                            if (bus.capacityStatus === 'Full' || bus.capacityStatus === 'Maybe Full') {
+                                // If already marked full, show both options so students can correct it
+                                reportButtonsHtml = `
+                                <div class="report-actions">
+                                    <button class="report-btn" onclick="submitCapacityReport('${bus.id}', this, 'full')">📈 Full</button>
+                                    <button class="report-btn unreport-btn" onclick="submitCapacityReport('${bus.id}', this, 'not-full')">📉 Not Full</button>
+                                </div>`;
+                            } else {
+                                // If normal, only show the button to report it full
+                                reportButtonsHtml = `
+                                <button class="report-btn" style="width:100%; margin-top:10px;" onclick="submitCapacityReport('${bus.id}', this, 'full')">🚌 Report Bus as Full</button>`;
+                            }
+
                             const popup = `
                                 <div class="popup-header" style="background:${busColor}">
                                     <span>🚌 ${bus.name}</span>
@@ -735,61 +735,80 @@
                                 <div class="popup-body">
                                     ${capacityWarningHtml}
                                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                                        <span class="status-badge" style="background:${badgeBg}; color:${busColor};">
-                                            ${bus.status}
-                                        </span>
-                                        <span style="font-size:12px; font-weight:700; color:#64748b;">
-                                            ⏳ ${durationText}
-                                        </span>
+                                        <span class="status-badge" style="background:${badgeBg}; color:${busColor};">${bus.status}</span>
+                                        <span style="font-size:12px; font-weight:700; color:#64748b;">⏳ ${durationText}</span>
                                     </div>
-
                                     <div class="info-row"><span class="info-icon">👤</span> <b>${driverName}</b></div>
                                     <div class="info-row"><span class="info-icon">📞</span> <a href="tel:${mobileNo}" style="color:#2563eb; text-decoration:none; font-weight:700;">${mobileNo}</a></div>
                                     <div class="info-row"><span class="info-icon">🚀</span> <b>${bus.speed} km/h</b></div>
                                     <div class="info-row"><span class="info-icon">📍</span> ${bus.address}</div>
-
-                                    <div style="font-size:10px; color:#94a3b8; text-align:right; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:6px;">
-                                        Updated: ${fixTime(bus.updated)}
-                                    </div>
+                                    <div style="font-size:10px; color:#94a3b8; text-align:right; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:6px;">Updated: ${fixTime(bus.updated)}</div>
                                     <a href="https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}" target="_blank" class="track-link">🔗 Open Full Live Tracker</a>
                                     
-                                    <div class="report-actions">
-                                        <button class="report-btn" onclick="submitCapacityReport('${bus.id}', this, 'full')">📈 Full</button>
-                                        <button class="report-btn unreport-btn" onclick="submitCapacityReport('${bus.id}', this, 'not-full')">📉 Not Full</button>
-                                    </div>
+                                    ${reportButtonsHtml}
                                 </div>`;
                             
-                            const svgString = getBusSVG(busColor);
-                            const busImgSrc = "data:image/svg+xml;base64," + btoa(svgString);
-
                             let mapLabelText = "";
                             if (bus.name.startsWith("Bus ")) {
                                 mapLabelText = bus.name.split(":")[0].replace("Bus", "").trim(); 
                             } else if (bus.name.startsWith("BRTC ")) {
                                 mapLabelText = "B" + bus.name.replace("BRTC", "").trim().replace(/^0+/, ""); 
-                            } else {
-                                mapLabelText = bus.name;
-                            }
+                            } else { mapLabelText = bus.name; }
 
-                            const customIcon = L.divIcon({ 
-                                className: 'custom-bus-icon', 
-                                html: `
+                            // --- LITE MODE TRUE SVG REPLACEMENT ---
+                            let customIconHtml = '';
+                            let iconDimensions = [40, 60];
+                            let iconAnch = [20, 30];
+                            let popAnch = [0, -25];
+
+                            if (isLiteMode) {
+                                // Lite Mode: Replaces heavy SVG with a fast CSS circle
+                                let liteBadge = '';
+                                if (bus.capacityStatus === 'Full') {
+                                    liteBadge = `<div style="position:absolute; top:-4px; right:-4px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:1px solid white;"></div>`;
+                                } else if (bus.capacityStatus === 'Maybe Full') {
+                                    liteBadge = `<div style="position:absolute; top:-4px; right:-4px; width:10px; height:10px; background:#f97316; border-radius:50%; border:1px solid white;"></div>`;
+                                }
+                                
+                                customIconHtml = `
+                                <div style="position:relative; width:24px; height:24px; background:${busColor}; border-radius:50%; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center;">
+                                    <span style="color:white; font-size:9px; font-weight:900;">${mapLabelText.substring(0,3)}</span>
+                                    ${liteBadge}
+                                </div>`;
+                                
+                                iconDimensions = [24, 24];
+                                iconAnch = [12, 12];
+                                popAnch = [0, -10];
+                            } else {
+                                // Normal Mode: Renders the full SVG
+                                let capacityBadgeHtml = '';
+                                if (bus.capacityStatus === 'Full') { capacityBadgeHtml = `<div class="capacity-map-badge">FULL</div>`; }
+                                else if (bus.capacityStatus === 'Maybe Full') { capacityBadgeHtml = `<div class="capacity-map-badge maybe">MOSTLY FULL</div>`; }
+                                
+                                const svgString = getBusSVG(busColor);
+                                const busImgSrc = "data:image/svg+xml;base64," + btoa(svgString);
+                                customIconHtml = `
                                 <div class="bus-icon-wrapper">
                                     ${capacityBadgeHtml}
                                     <div class="bus-rotate-wrapper" style="transform: rotate(${bus.course}deg);">
                                         <img src="${busImgSrc}" class="bus-img-top">
                                     </div>
                                     <div class="map-bus-label">${mapLabelText}</div>
-                                </div>`, 
-                                iconSize: [40, 60], iconAnchor: [20, 30], popupAnchor: [0, -25] 
+                                </div>`;
+                            }
+
+                            const customIcon = L.divIcon({ 
+                                className: 'custom-bus-icon', 
+                                html: customIconHtml, 
+                                iconSize: iconDimensions, iconAnchor: iconAnch, popupAnchor: popAnch 
                             });
 
                             if (mapMarkersObj[bus.id]) {
                                 mapMarkersObj[bus.id].setLatLng([bus.lat, bus.lng]).setPopupContent(popup).setIcon(customIcon);
-                                mapMarkersObj[bus.id]._busHash = busHash; // Save hash
+                                mapMarkersObj[bus.id]._busHash = busHash; 
                             } else { 
                                 mapMarkersObj[bus.id] = L.marker([bus.lat, bus.lng], {icon: customIcon}).addTo(map).bindPopup(popup); 
-                                mapMarkersObj[bus.id]._busHash = busHash; // Save hash
+                                mapMarkersObj[bus.id]._busHash = busHash; 
                             }
                         }
                     }
@@ -815,7 +834,6 @@
         function isNightTime() {
             const dhakaTime = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Dhaka"}));
             const h = dhakaTime.getHours(); const m = dhakaTime.getMinutes();
-            // From 9:30 PM (21:30) until 7:00 AM (07:00)
             return (h > 21) || (h === 21 && m >= 30) || (h < 7);
         }
 
@@ -834,21 +852,19 @@
         checkTimeAndFetch();
         trackingInterval = setInterval(checkTimeAndFetch, 5000); 
 
-        // --- 10 SECOND FIX & BENGALI NOTICE TRIGGER ---
         let hasAlerted = false;
         setTimeout(() => {
             const activeCount = document.querySelectorAll('.status-dot.active').length;
             if (activeCount === 0 && !hasAlerted && !isNightTime()) {
                 hasAlerted = true;
                 document.getElementById('error-popup').style.display = 'flex';
-                startCountdown(); // Start 50-to-0 Bengali timer
+                startCountdown();
                 fetch(`${SERVER}/send-alert`).catch(e => console.log("Alarm Error:", e));
             }
         }, 10000); 
 
         fetch("https://api.counterapi.dev/v1/buft-tracker-nabil/view/up").then(res => res.json()).then(data => { const el = document.getElementById('visitor-count'); if(el) el.innerText = `Total Visitors: ${data.count}`; }).catch(e => {});
 
-        // --- PWA INSTALL APP LOGIC ---
         let deferredPrompt;
         const installBtn = document.getElementById('install-app-btn');
 
