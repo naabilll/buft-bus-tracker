@@ -797,7 +797,16 @@
             }
         }, 10000); 
 
-        fetch("https://api.counterapi.dev/v1/buft-tracker-nabil/view/up").then(res => res.json()).then(data => { const el = document.getElementById('visitor-count'); if(el) el.innerText = `Total Visitors: ${data.count}`; }).catch(e => {});
+        fetch("https://api.counterapi.dev/v1/buft-tracker-nabil/view/up")
+    .then(res => res.json())
+    .then(data => { 
+        const el = document.getElementById('visitor-count'); 
+        if(el) el.innerText = `Total Visitors: ${data.count}`; 
+    })
+    .catch(e => {
+        const el = document.getElementById('visitor-count'); 
+        if(el) el.innerText = `Total Visitors: Temporarily Unavailable`; 
+    });
 
         // --- PWA INSTALL APP LOGIC ---
         let deferredPrompt;
