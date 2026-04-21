@@ -125,7 +125,6 @@
         .about-title { font-weight: 700; color: #0f172a; margin-bottom: 8px; font-size: 15px; transition: color 0.3s; }
         .about-limit { margin-top: 12px; font-weight: 800; color: #0f172a; font-size: 14px; transition: color 0.3s; }
         .about-credits { margin-top: 15px; font-size: 12px; color: #64748b; font-weight: 500; border-top: 1px solid #cbd5e1; padding-top: 10px; }
-        .visitor-text { font-size: 11px; color: #94a3b8; margin-top: 5px; font-weight: 600; }
         .new-feature-list { list-style: none; padding: 0; margin: 5px 0; }
         .new-feature-list li { padding-left: 20px; position: relative; margin-bottom: 6px; font-size: 12px; line-height: 1.4; transition: color 0.3s; }
         .new-feature-list li:before { content: '✨'; position: absolute; left: 0; top: 0; }
@@ -253,7 +252,11 @@
                 </ul>
             </div>
 
-            <div class="about-credits">Developed By: <a href="https://www.facebook.com/NabilShazzad" target="_blank" style="color: #2563eb; text-decoration: none;"><b>Shazzad Hossain Nabil (TE_221)</b></a> <br>Assisted by: <b>Google Gemini AI</b><div id="visitor-count" class="visitor-text">Total Visitors: ...</div></div>
+            <div class="about-credits">Developed By: <a href="https://www.facebook.com/NabilShazzad" target="_blank" style="color: #2563eb; text-decoration: none;"><b>Shazzad Hossain Nabil (TE_221)</b></a> <br>Assisted by: <b>Google Gemini AI</b>
+                <div style="margin-top: 10px;">
+                    <img src="https://hits.sh/naabilll.github.io/buft-bus-tracker.svg?label=Total%20Visitors&extraCount=14000&color=2563eb&labelColor=0f172a" alt="Total Visitors">
+                </div>
+            </div>
         </div>
     </div>
 
@@ -661,7 +664,6 @@
                         let driverName = bus.driver || "--";
                         let mobileNo = bus.phone || "--";
 
-                        // --- CAPACITY BADGES & WARNINGS (MOSTLY FULL UPDATED) ---
                         let capacityBadgeHtml = '';
                         let capacityWarningHtml = '';
                         if (bus.capacityStatus === 'Full') {
@@ -672,7 +674,6 @@
                             capacityWarningHtml = `<div style="background:#ffedd5; color:#c2410c; padding:8px; border-radius:8px; font-size:12px; font-weight:800; text-align:center; margin-bottom:10px; border:1px solid #fdba74;">⚠️ BUS ALMOST FULL</div>`;
                         }
 
-                        // --- FIXED "NOT FULL" BUTTON LOGIC ---
                         let reportButtonsHtml = '';
                         if (bus.capacityStatus === 'Full' || bus.capacityStatus === 'Maybe Full') {
                             reportButtonsHtml = `
@@ -785,7 +786,6 @@
         checkTimeAndFetch();
         setInterval(checkTimeAndFetch, 5000); 
 
-        // --- 10 SECOND FIX & BENGALI NOTICE TRIGGER ---
         let hasAlerted = false;
         setTimeout(() => {
             const activeCount = document.querySelectorAll('.status-dot.active').length;
@@ -796,17 +796,6 @@
                 fetch(`${SERVER}/send-alert`).catch(e => console.log("Alarm Error:", e));
             }
         }, 10000); 
-
-        fetch("https://api.counterapi.dev/v1/buft-tracker-nabil/view/up")
-    .then(res => res.json())
-    .then(data => { 
-        const el = document.getElementById('visitor-count'); 
-        if(el) el.innerText = `Total Visitors: ${data.count}`; 
-    })
-    .catch(e => {
-        const el = document.getElementById('visitor-count'); 
-        if(el) el.innerText = `Total Visitors: Temporarily Unavailable`; 
-    });
 
         // --- PWA INSTALL APP LOGIC ---
         let deferredPrompt;
