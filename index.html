@@ -99,6 +99,32 @@
         .floating-notice { display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(254, 226, 226, 0.95); border: 2px solid #ef4444; color: #991b1b; padding: 12px 20px; border-radius: 50px; font-weight: 700; font-size: 13px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); z-index: 2000; text-align: center; white-space: nowrap; animation: pop-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes pop-up { from { transform: translateX(-50%) scale(0.8); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
 
+        /* --- NEW MAINTENANCE BANNER --- */
+        #maintenance-notice {
+            display: none;
+            position: absolute;
+            top: 85px; 
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 251, 235, 0.95);
+            border: 2px solid #f59e0b;
+            color: #92400e;
+            padding: 12px 18px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 360px;
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.25);
+            z-index: 1000;
+            text-align: center;
+            font-family: 'Outfit', sans-serif;
+            animation: slideDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #maintenance-notice .icon { font-size: 24px; margin-bottom: 4px; }
+        #maintenance-notice .title { font-weight: 800; font-size: 15px; margin-bottom: 4px; color: #b45309; }
+        #maintenance-notice .text { font-size: 12px; font-weight: 600; line-height: 1.4; }
+        
+        @keyframes slideDown { from { transform: translate(-50%, -20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
         .leaflet-bottom.leaflet-right { margin-bottom: 90px !important; }
         .leaflet-control-zoom { box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important; border: none !important; }
 
@@ -418,10 +444,25 @@
         body.dark-mode .track-link { background: #334155; color: #f8fafc; }
         body.dark-mode .whats-new-toggle { background: #1e3a8a; color: #bfdbfe; }
         body.dark-mode .whats-new-toggle:hover { background: #233876; }
+        
+        /* DARK MODE FOR MAINTENANCE NOTICE */
+        body.dark-mode #maintenance-notice {
+            background: rgba(69, 26, 3, 0.95);
+            border-color: #b45309;
+            color: #fde68a;
+        }
+        body.dark-mode #maintenance-notice .title { color: #fcd34d; }
     </style>
 </head>
 <body>
     <div id="floating-night-notice" class="floating-notice">🌙 Service Paused (Night) - Resumes 7:00 AM Morning</div>
+    
+    <div id="maintenance-notice">
+        <div class="icon">⚠️</div>
+        <div class="title">University Server Offline</div>
+        <div class="text">The main BUFT tracking system is currently down or updating bus IDs. Buses will automatically reappear here as soon as the university fixes their server.</div>
+    </div>
+
     <button class="menu-btn" onclick="toggleSidebar()">☰</button>
 
     <div class="sidebar" id="sidebar">
@@ -505,25 +546,20 @@
                     <span class="countdown-number" id="wakeup-countdown">৫০</span>
                 </div>
             </div>
-
             <div class="wakeup-title">অনুগ্রহ করে ১ মিনিট অপেক্ষা করুন...</div>
-
             <div class="wakeup-body">
                 ফ্রি সার্ভার ব্যবহারের কারণে ১৫ মিনিট কেউ সাইটে না থাকলে
                 এটি সাময়িকভাবে বন্ধ (Sleep Mode) হয়ে যায়।
                 তাই নতুন করে ওয়েবসাইট ওপেন করলে প্রথমবার লোড হতে
                 প্রায় ১ মিনিট সময় লাগতে পারে।
             </div>
-
             <div class="progress-track">
                 <div class="progress-fill" id="wakeup-progress"></div>
             </div>
-
             <div class="status-line">
                 <span class="status-dot-pulse"></span>
                 <span>Connecting to server</span>
             </div>
-
             <button class="dismiss-btn" onclick="closeWakeupScreen()">Dismiss</button>
         </div>
     </div>
@@ -553,6 +589,10 @@
         let mapMarkersObj = {}; 
         let userMarker = null;
         let isSidebarBuilt = false;
+        let popupTimerInterval = null; 
+        
+        // Counter to track how many times the server replied with 0 buses (Broken IDs)
+        let consecutiveEmptyFetches = 0;
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function toggleAbout() { const box = document.getElementById('about-box'); box.style.display = (box.style.display === "block") ? "none" : "block"; }
@@ -812,6 +852,9 @@
             const overlay  = document.getElementById('server-wakeup-overlay');
             const display  = document.getElementById('wakeup-countdown');
             const progress = document.getElementById('wakeup-progress');
+            
+            // Hide maintenance notice so they don't overlap
+            document.getElementById('maintenance-notice').style.display = 'none';
 
             if (!overlay || overlay.style.display === 'flex') return; 
 
@@ -849,7 +892,7 @@
             setTimeout(() => { overlay.style.display = 'none'; }, 500);
         }
 
-        // ─── FIXED FETCH TRIGGER LOGIC ───
+        // ─── FETCH TRIGGER LOGIC ───
         async function fetchFleet() {
             const statusEl = document.getElementById('status-text');
             const controller = new AbortController();
@@ -862,9 +905,19 @@
                 if (!res.ok) throw new Error("Server error");
                 const fleet = await res.json();
                 
-                // ONLY close the popup if we actually received bus data!
+                // If buses actually loaded
                 if (fleet.length > 0) {
+                    consecutiveEmptyFetches = 0; // Reset the empty counter
+                    document.getElementById('maintenance-notice').style.display = 'none'; // Auto-recovery hides the banner
                     closeWakeupScreen(); 
+                } else {
+                    // Server replied successfully but with 0 buses
+                    consecutiveEmptyFetches++;
+                    
+                    // If it has been 15 seconds (3 fetches) of empty arrays, and it's not night time
+                    if (consecutiveEmptyFetches >= 3 && !isNightTime()) {
+                        document.getElementById('maintenance-notice').style.display = 'block';
+                    }
                 }
                 
                 globalFleetData = fleet;
@@ -1048,6 +1101,7 @@
                 document.getElementById('floating-night-notice').style.display = 'block';
                 document.getElementById('night-notice-sidebar').style.display = 'block';
                 document.getElementById('status-text').innerHTML = "🌙 Offline for Night";
+                document.getElementById('maintenance-notice').style.display = 'none'; // Hide banner at night
             } else {
                 document.getElementById('floating-night-notice').style.display = 'none';
                 document.getElementById('night-notice-sidebar').style.display = 'none';
@@ -1057,17 +1111,6 @@
 
         checkTimeAndFetch();
         setInterval(checkTimeAndFetch, 5000); 
-
-        // --- 10 SECOND SAFETY NET RESTORED ---
-        let hasAlerted = false;
-        setTimeout(() => {
-            // If after 10 seconds we have ZERO bus data, forcefully show the popup
-            if (globalFleetData.length === 0 && !hasAlerted && !isNightTime()) {
-                hasAlerted = true;
-                showWakeupScreen(); 
-                fetch(`${SERVER}/send-alert`).catch(e => console.log("Alarm Error:", e));
-            }
-        }, 10000); 
 
         // --- PWA INSTALL APP LOGIC ---
         let deferredPrompt;
