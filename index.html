@@ -853,7 +853,6 @@
         async function fetchFleet() {
             const statusEl = document.getElementById('status-text');
             const controller = new AbortController();
-            // Network timeout set to 8 seconds — if no reply, server is asleep!
             const timeoutId = setTimeout(() => controller.abort(), 8000); 
 
             try {
@@ -863,7 +862,10 @@
                 if (!res.ok) throw new Error("Server error");
                 const fleet = await res.json();
                 
-                closeWakeupScreen(); // SUCCESS! Hide popup immediately if it was open
+                // ONLY close the popup if we actually received bus data!
+                if (fleet.length > 0) {
+                    closeWakeupScreen(); 
+                }
                 
                 globalFleetData = fleet;
 
@@ -1028,13 +1030,9 @@
                 statusEl.innerText = `⚠️ Connection Error`;
                 statusEl.style.color = "#ef4444";
                 
-                // Show Opus Wake Up screen ONLY if server is dead/timeout
-                if (e.name === 'AbortError' || e instanceof TypeError) {
-                    showWakeupScreen();
-                    
-                    // Ping the alert endpoint to notify you / wake the server silently
-                    fetch(`${SERVER}/send-alert`).catch(err => {}); 
-                }
+                // Show Wakeup Screen on ANY fetch failure
+                showWakeupScreen();
+                fetch(`${SERVER}/send-alert`).catch(err => {}); 
             }
         }
 
@@ -1059,6 +1057,17 @@
 
         checkTimeAndFetch();
         setInterval(checkTimeAndFetch, 5000); 
+
+        // --- 10 SECOND SAFETY NET RESTORED ---
+        let hasAlerted = false;
+        setTimeout(() => {
+            // If after 10 seconds we have ZERO bus data, forcefully show the popup
+            if (globalFleetData.length === 0 && !hasAlerted && !isNightTime()) {
+                hasAlerted = true;
+                showWakeupScreen(); 
+                fetch(`${SERVER}/send-alert`).catch(e => console.log("Alarm Error:", e));
+            }
+        }, 10000); 
 
         // --- PWA INSTALL APP LOGIC ---
         let deferredPrompt;
