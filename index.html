@@ -103,7 +103,7 @@
         #maintenance-notice {
             display: none;
             position: absolute;
-            top: 85px; 
+            top: 135px; /* Safely pushed down to clear the dashboard box */
             left: 50%;
             transform: translateX(-50%);
             background: rgba(255, 251, 235, 0.95);
@@ -452,6 +452,7 @@
             color: #fde68a;
         }
         body.dark-mode #maintenance-notice .title { color: #fcd34d; }
+        body.dark-mode #maintenance-notice a { color: #fcd34d !important; }
     </style>
 </head>
 <body>
@@ -460,7 +461,10 @@
     <div id="maintenance-notice">
         <div class="icon">⚠️</div>
         <div class="title">University Server Offline</div>
-        <div class="text">The main BUFT tracking system is currently down or updating bus IDs. Buses will automatically reappear here as soon as the university fixes their server.</div>
+        <div class="text">The main BUFT <b>Bus</b> tracking system is currently down or updating bus IDs. Buses will automatically reappear here as soon as the university fixes their server.</div>
+        <div style="margin-top: 10px; font-size: 11px;">
+            <a href="http://sms.buft.edu.bd" target="_blank" style="color: #b45309; text-decoration: underline; font-weight: 800;">🔗 Verify on official sms.buft.edu.bd</a>
+        </div>
     </div>
 
     <button class="menu-btn" onclick="toggleSidebar()">☰</button>
@@ -591,8 +595,7 @@
         let isSidebarBuilt = false;
         let popupTimerInterval = null; 
         
-        // Counter to track how many times the server replied with 0 valid buses (Broken IDs)
-        let consecutiveEmptyFetches = 0;
+        let maintenanceTimer = null; // Timer for the 8-second delay
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function toggleAbout() { const box = document.getElementById('about-box'); box.style.display = (box.style.display === "block") ? "none" : "block"; }
@@ -912,13 +915,16 @@
                 const hasValidData = fleet.some(bus => bus.lat > 0 && bus.lng > 0);
 
                 if (hasValidData) {
-                    consecutiveEmptyFetches = 0; // Reset counter
+                    clearTimeout(maintenanceTimer);
+                    maintenanceTimer = null;
                     document.getElementById('maintenance-notice').style.display = 'none'; 
                 } else {
                     // Render replied, but data is completely dead (0,0) - BongoIoT is down / IDs broken
-                    consecutiveEmptyFetches++;
-                    if (consecutiveEmptyFetches >= 3 && !isNightTime()) {
-                        document.getElementById('maintenance-notice').style.display = 'block';
+                    if (!maintenanceTimer && !isNightTime() && document.getElementById('maintenance-notice').style.display !== 'block') {
+                        // Start exactly an 8-second timer
+                        maintenanceTimer = setTimeout(() => {
+                            document.getElementById('maintenance-notice').style.display = 'block';
+                        }, 8000); 
                     }
                 }
                 
@@ -1102,6 +1108,9 @@
                 document.getElementById('floating-night-notice').style.display = 'block';
                 document.getElementById('night-notice-sidebar').style.display = 'block';
                 document.getElementById('status-text').innerHTML = "🌙 Offline for Night";
+                
+                clearTimeout(maintenanceTimer);
+                maintenanceTimer = null;
                 document.getElementById('maintenance-notice').style.display = 'none'; 
             } else {
                 document.getElementById('floating-night-notice').style.display = 'none';
