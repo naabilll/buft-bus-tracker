@@ -19,9 +19,27 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 
     <style>
+        /* --- CSS VARIABLES FOR OPUS POPUP --- */
+        :root {
+            --glass-bg:        rgba(12, 18, 38, 0.72);
+            --glass-border:    rgba(100, 160, 255, 0.18);
+            --glass-shadow:    0 32px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(100,160,255,0.08);
+            --accent:          #4f9eff;
+            --accent-glow:     rgba(79, 158, 255, 0.35);
+            --accent-dim:      rgba(79, 158, 255, 0.15);
+            --text-primary:    rgba(230, 240, 255, 0.95);
+            --text-secondary:  rgba(160, 185, 220, 0.75);
+            --pulse-ring:      rgba(79, 158, 255, 0.22);
+            --radar-track:     rgba(79, 158, 255, 0.12);
+            --dismiss-bg:      rgba(79, 158, 255, 0.12);
+            --dismiss-hover:   rgba(79, 158, 255, 0.22);
+            --dismiss-border:  rgba(79, 158, 255, 0.35);
+        }
+
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background: #f0f2f5; overflow: hidden; transition: background 0.3s; }
         #map { height: 100vh; width: 100%; z-index: 1; }
@@ -84,10 +102,9 @@
         .leaflet-bottom.leaflet-right { margin-bottom: 90px !important; }
         .leaflet-control-zoom { box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important; border: none !important; }
 
-        /* POPUPS - FIXED THE TEXT OVERLAP BUG */
+        /* POPUPS */
         .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: background 0.3s; }
         .leaflet-popup-content { margin: 0; width: 270px !important; }
-        /* padding-right: 35px prevents the text from going under the X button */
         .popup-header { color: white; padding: 12px 35px 12px 15px; font-weight: 800; font-size: 15px; line-height: 1.4; word-wrap: break-word; }
         .popup-body { padding: 15px; background: white; font-family: 'Outfit', sans-serif; transition: background 0.3s; }
         .info-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 13px; color: #334155; transition: color 0.3s; }
@@ -138,28 +155,247 @@
         .user-loc-dot::after { content: ''; position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px; background: rgba(59, 130, 246, 0.4); border-radius: 50%; animation: pulse-blue 2s infinite; }
         @keyframes pulse-blue { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
 
-        /* --- THEMED LOADING POPUP --- */
-        .error-popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 99999; justify-content: center; align-items: center; font-family: 'Outfit', sans-serif; }
-        .error-popup-box { background: white; padding: 25px 20px; border-radius: 24px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: pop-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .error-popup-title { font-family: 'Tiro Bangla', serif; color: #2563eb; font-size: 22px; font-weight: 700; margin-bottom: 12px; line-height: 1.4; }
-        .error-popup-text { font-family: 'Tiro Bangla', serif; color: #475569; font-size: 15px; margin-bottom: 20px; line-height: 1.6; }
-        .countdown-circle { font-family: 'Tiro Bangla', serif; font-size: 42px; font-weight: 700; color: #2563eb; margin: 10px 0; }
-        
-        .bus-loader-container { position: relative; width: 100%; height: 50px; margin-bottom: 15px; background: #f1f5f9; border-radius: 12px; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); transition: background 0.3s; }
-        .moving-bus-wrapper { position: absolute; left: 0%; top: 10px; display: flex; align-items: center; transition: left 1s linear; width: 40px; z-index: 2; }
-        .moving-bus { width: 40px; z-index: 3; position: relative; }
-        
-        .exhaust { position: absolute; left: -10px; top: 8px; width: 15px; height: 15px; z-index: 1; display: block; }
-        .spark { position: absolute; background: #f97316; height: 2px; width: 6px; border-radius: 2px; opacity: 0; }
-        .spark:nth-child(1) { top: 0px; animation: spark-fly 0.4s infinite linear; }
-        .spark:nth-child(2) { top: 5px; background: #fbbf24; animation: spark-fly 0.5s infinite linear 0.2s; }
-        .spark:nth-child(3) { top: 10px; background: #ef4444; animation: spark-fly 0.3s infinite linear 0.1s; }
-        
-        @keyframes spark-fly { 0% { transform: translateX(0px); opacity: 1; } 100% { transform: translateX(-15px); opacity: 0; } }
+        /* ─── OPUS SERVER WAKEUP OVERLAY CSS ─────────────────────────────────────────── */
+        #server-wakeup-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(4, 8, 20, 0.65);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            animation: overlayFadeIn 0.6s ease forwards;
+        }
 
-        .error-popup-close { margin-top: 15px; color: #94a3b8; font-size: 13px; cursor: pointer; font-weight: 600; text-decoration: underline; display: inline-block; padding: 5px; }
+        #server-wakeup-overlay.hidden {
+            animation: overlayFadeOut 0.5s ease forwards;
+            pointer-events: none;
+        }
 
-        /* --- DARK MODE CSS --- */
+        @keyframes overlayFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes overlayFadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+        .wakeup-card {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: blur(24px) saturate(160%);
+            -webkit-backdrop-filter: blur(24px) saturate(160%);
+            padding: 36px 32px 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            overflow: hidden;
+            animation: cardSlideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes cardSlideUp {
+            from { opacity: 0; transform: translateY(28px) scale(0.96); }
+            to   { opacity: 1; transform: translateY(0)    scale(1);    }
+        }
+
+        .wakeup-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 10%; right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(100,175,255,0.55), transparent);
+            border-radius: 50%;
+        }
+
+        .radar-wrap {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 28px;
+            flex-shrink: 0;
+        }
+
+        .radar-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 1.5px solid var(--pulse-ring);
+            animation: radarExpand 2.6s ease-out infinite;
+            transform-origin: center;
+        }
+        .radar-ring:nth-child(1) { animation-delay: 0s; }
+        .radar-ring:nth-child(2) { animation-delay: 0.7s; }
+        .radar-ring:nth-child(3) { animation-delay: 1.4s; }
+
+        @keyframes radarExpand {
+            0%   { transform: scale(0.5); opacity: 0.7; }
+            70%  { opacity: 0.15; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+
+        .radar-track {
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            border: 1.5px solid var(--radar-track);
+        }
+
+        .radar-spinner {
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            border: 2.5px solid transparent;
+            border-top-color: var(--accent);
+            border-right-color: rgba(79,158,255,0.4);
+            animation: spin 1.4s cubic-bezier(0.55, 0, 0.45, 1) infinite;
+            filter: drop-shadow(0 0 6px var(--accent-glow));
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .radar-orb {
+            position: absolute;
+            inset: 30px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 38% 38%,
+                rgba(100, 180, 255, 0.3) 0%,
+                rgba(40, 100, 220, 0.2) 45%,
+                rgba(10, 30, 80, 0.15) 100%);
+            border: 1px solid rgba(100,180,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: orbBreath 3s ease-in-out infinite;
+        }
+
+        @keyframes orbBreath {
+            0%, 100% { transform: scale(1);    box-shadow: 0 0 16px var(--accent-glow); }
+            50%      { transform: scale(1.08); box-shadow: 0 0 28px var(--accent-glow); }
+        }
+
+        .countdown-number {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--accent);
+            line-height: 1;
+            letter-spacing: -0.5px;
+            text-shadow: 0 0 12px var(--accent-glow);
+            transition: opacity 0.2s ease;
+        }
+
+        .wakeup-title {
+            font-family: 'Tiro Bangla', serif;
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--text-primary);
+            text-align: center;
+            line-height: 1.55;
+            letter-spacing: 0.01em;
+            margin-bottom: 14px;
+        }
+
+        .wakeup-body {
+            font-family: 'Tiro Bangla', serif;
+            font-size: 13.5px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.75;
+            letter-spacing: 0.015em;
+            margin-bottom: 26px;
+            padding: 0 4px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 3px;
+            background: var(--radar-track);
+            border-radius: 99px;
+            margin-bottom: 22px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, rgba(79,158,255,0.5), var(--accent));
+            box-shadow: 0 0 8px var(--accent-glow);
+            width: 100%;  
+            transition: width 1s linear;
+            transform-origin: left;
+        }
+
+        .status-line {
+            font-family: 'Outfit', sans-serif;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            opacity: 0.7;
+        }
+
+        .status-dot-pulse {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 6px var(--accent);
+            animation: dotBlink 1.8s ease-in-out infinite;
+        }
+
+        @keyframes dotBlink {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0.2; }
+        }
+
+        .dismiss-btn {
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            color: rgba(130, 185, 255, 0.85);
+            background: var(--dismiss-bg);
+            border: 1px solid var(--dismiss-border);
+            border-radius: 12px;
+            padding: 10px 28px;
+            cursor: pointer;
+            transition: background 0.22s ease, color 0.22s ease, transform 0.15s ease, box-shadow 0.22s ease;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .dismiss-btn:hover {
+            background: var(--dismiss-hover);
+            color: rgba(190, 220, 255, 0.95);
+            box-shadow: 0 0 18px var(--accent-dim);
+            transform: translateY(-1px);
+        }
+
+        .dismiss-btn:active {
+            transform: translateY(0) scale(0.97);
+        }
+
+        @media (max-width: 420px) {
+            .wakeup-card { padding: 28px 22px 22px; border-radius: 24px; }
+            .radar-wrap { width: 100px; height: 100px; margin-bottom: 22px; }
+            .radar-orb  { inset: 24px; }
+            .countdown-number { font-size: 19px; }
+            .wakeup-title { font-size: 16.5px; }
+            .wakeup-body  { font-size: 13px; }
+        }
+
+        /* --- DARK MODE CSS OVERRIDES --- */
         body.dark-mode { background: #0f172a; }
         body.dark-mode .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
         body.dark-mode .dashboard, body.dark-mode .sidebar, body.dark-mode .menu-btn { background: #1e293b; color: #f8fafc; }
@@ -182,9 +418,6 @@
         body.dark-mode .track-link { background: #334155; color: #f8fafc; }
         body.dark-mode .whats-new-toggle { background: #1e3a8a; color: #bfdbfe; }
         body.dark-mode .whats-new-toggle:hover { background: #233876; }
-        body.dark-mode .error-popup-box { background: #1e293b; color: #f8fafc; }
-        body.dark-mode .error-popup-text { color: #cbd5e1; }
-        body.dark-mode .bus-loader-container { background: #0f172a; }
     </style>
 </head>
 <body>
@@ -260,26 +493,38 @@
         </div>
     </div>
 
-    <div id="error-popup" class="error-popup-overlay">
-        <div class="error-popup-box">
-            <div class="error-popup-title">অনুগ্রহ করে ১ মিনিট অপেক্ষা করুন।</div>
-            
-            <div class="bus-loader-container">
-                <div id="moving-bus-wrapper" class="moving-bus-wrapper">
-                    <div class="exhaust" id="bus-exhaust">
-                        <div class="spark"></div><div class="spark"></div><div class="spark"></div>
-                    </div>
-                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB4PSIyMCIgeT0iNDAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIzMCIgcng9IjUiIGZpbGw9IiMyNTYzZWIiLz48cmVjdCB4PSIyNSIgeT0iNDUiIHdpZHRoPSIxNSIgaGVpZ2h0PSIxMCIgZmlsbD0iI2FmZGVmZiIvPjxyZWN0IHg9IjYwIiB5PSI0NSIgd2lkdGg9IjE1IiBoZWlnaHQ9IjEwIiBmaWxsPSIjYWZkZWZmIi8+PGNpcmNsZSBjeD0iMzAiIGN5PSI3MCIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjcwIiBjeT0iNzAiIHI9IjUiIGZpbGw9IiMzMzMiLz48L3N2Zz4=" class="moving-bus" alt="Loading Bus">
+    <div id="server-wakeup-overlay" style="display: none;">
+        <div class="wakeup-card">
+            <div class="radar-wrap">
+                <div class="radar-ring"></div>
+                <div class="radar-ring"></div>
+                <div class="radar-ring"></div>
+                <div class="radar-track"></div>
+                <div class="radar-spinner"></div>
+                <div class="radar-orb">
+                    <span class="countdown-number" id="wakeup-countdown">৫০</span>
                 </div>
             </div>
 
-            <div id="bengali-timer" class="countdown-circle">৫০</div>
-            
-            <div class="error-popup-text">
-                ফ্রি সার্ভার ব্যবহারের কারণে ১৫ মিনিট কেউ সাইটে না থাকলে এটি সাময়িকভাবে বন্ধ (Sleep Mode) হয়ে যায়। তাই নতুন করে ওয়েবসাইট ওপেন করলে প্রথমবার লোড হতে প্রায় ১ মিনিট সময় লাগতে পারে। একবার লোড হয়ে গেলে আর কোনো সমস্যা হবে না।
+            <div class="wakeup-title">অনুগ্রহ করে ১ মিনিট অপেক্ষা করুন...</div>
+
+            <div class="wakeup-body">
+                ফ্রি সার্ভার ব্যবহারের কারণে ১৫ মিনিট কেউ সাইটে না থাকলে
+                এটি সাময়িকভাবে বন্ধ (Sleep Mode) হয়ে যায়।
+                তাই নতুন করে ওয়েবসাইট ওপেন করলে প্রথমবার লোড হতে
+                প্রায় ১ মিনিট সময় লাগতে পারে।
             </div>
-            
-            <div class="error-popup-close" onclick="closeErrorPopup()">Dismiss</div>
+
+            <div class="progress-track">
+                <div class="progress-fill" id="wakeup-progress"></div>
+            </div>
+
+            <div class="status-line">
+                <span class="status-dot-pulse"></span>
+                <span>Connecting to server</span>
+            </div>
+
+            <button class="dismiss-btn" onclick="closeWakeupScreen()">Dismiss</button>
         </div>
     </div>
 
@@ -308,7 +553,6 @@
         let mapMarkersObj = {}; 
         let userMarker = null;
         let isSidebarBuilt = false;
-        let popupTimerInterval = null; 
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function toggleAbout() { const box = document.getElementById('about-box'); box.style.display = (box.style.display === "block") ? "none" : "block"; }
@@ -403,7 +647,7 @@
             if (!navigator.geolocation) { alert("GPS is required to verify you are on the bus."); return; }
             
             const originalText = btnElement.innerText;
-            btnElement.innerText = "📍 Verifying GPS...";
+            btnElement.innerText = "📍 Verifying...";
             btnElement.style.opacity = "0.7";
             btnElement.disabled = true;
 
@@ -554,53 +798,74 @@
             }
         }
 
-        function toBengali(n) {
-            const symbols = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-            return n.toString().split('').map(d => symbols[d]).join('');
+        // ─── OPUS POPUP LOGIC ───
+        const EN_TO_BN = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+        function toBengaliNum(n) {
+            return String(n).replace(/\d/g, d => EN_TO_BN[+d]);
         }
 
-        function startCountdown() {
-            let timeLeft = 50;
-            const display = document.getElementById('bengali-timer');
-            const busWrapper = document.getElementById('moving-bus-wrapper');
-            const exhaust = document.getElementById('bus-exhaust');
-            
-            display.innerText = toBengali(timeLeft);
-            busWrapper.style.left = '0%';
-            exhaust.style.display = 'block';
+        let wakeupCountInterval = null;
+        let wakeupSecondsLeft   = 50;
+        const WAKEUP_DURATION   = 50; 
 
-            if (popupTimerInterval) clearInterval(popupTimerInterval);
-            
-            popupTimerInterval = setInterval(() => {
-                timeLeft--;
-                display.innerText = toBengali(timeLeft);
-                let progressPercentage = ((50 - timeLeft) / 50) * 85;
-                busWrapper.style.left = progressPercentage + '%';
-                
-                if (timeLeft <= 0) {
-                    clearInterval(popupTimerInterval);
-                    exhaust.style.display = 'none'; 
+        function showWakeupScreen() {
+            const overlay  = document.getElementById('server-wakeup-overlay');
+            const display  = document.getElementById('wakeup-countdown');
+            const progress = document.getElementById('wakeup-progress');
+
+            if (!overlay || overlay.style.display === 'flex') return; 
+
+            wakeupSecondsLeft = WAKEUP_DURATION;
+            overlay.classList.remove('hidden');
+            overlay.style.display = 'flex';
+
+            display.textContent   = toBengaliNum(wakeupSecondsLeft);
+            progress.style.width  = '100%';
+
+            clearInterval(wakeupCountInterval);
+            wakeupCountInterval = setInterval(() => {
+                wakeupSecondsLeft = Math.max(0, wakeupSecondsLeft - 1);
+
+                display.style.opacity = '0';
+                setTimeout(() => {
+                    display.textContent = toBengaliNum(wakeupSecondsLeft);
+                    display.style.opacity = '1';
+                }, 100);
+
+                const pct = (wakeupSecondsLeft / WAKEUP_DURATION) * 100;
+                progress.style.width = pct + '%';
+
+                if (wakeupSecondsLeft <= 0) {
+                    clearInterval(wakeupCountInterval);
                 }
             }, 1000);
         }
 
-        function closeErrorPopup() {
-            document.getElementById('error-popup').style.display = 'none';
-            if (popupTimerInterval) clearInterval(popupTimerInterval);
+        function closeWakeupScreen() {
+            const overlay = document.getElementById('server-wakeup-overlay');
+            if (!overlay) return;
+            clearInterval(wakeupCountInterval);
+            overlay.classList.add('hidden');
+            setTimeout(() => { overlay.style.display = 'none'; }, 500);
         }
 
+        // ─── FIXED FETCH TRIGGER LOGIC ───
         async function fetchFleet() {
             const statusEl = document.getElementById('status-text');
+            const controller = new AbortController();
+            // Network timeout set to 8 seconds — if no reply, server is asleep!
+            const timeoutId = setTimeout(() => controller.abort(), 8000); 
 
             try {
-                const res = await fetch(`${SERVER}/fleet`);
+                const res = await fetch(`${SERVER}/fleet`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
                 if (!res.ok) throw new Error("Server error");
                 const fleet = await res.json();
-                globalFleetData = fleet;
                 
-                if (fleet.length > 0) {
-                    closeErrorPopup(); 
-                }
+                closeWakeupScreen(); // SUCCESS! Hide popup immediately if it was open
+                
+                globalFleetData = fleet;
 
                 let activeCount = 0;
                 const listContainer = document.getElementById('bus-list-container');
@@ -758,9 +1023,18 @@
                 }
 
             } catch (e) {
+                clearTimeout(timeoutId);
                 console.log("Network scan error.", e);
                 statusEl.innerText = `⚠️ Connection Error`;
                 statusEl.style.color = "#ef4444";
+                
+                // Show Opus Wake Up screen ONLY if server is dead/timeout
+                if (e.name === 'AbortError' || e instanceof TypeError) {
+                    showWakeupScreen();
+                    
+                    // Ping the alert endpoint to notify you / wake the server silently
+                    fetch(`${SERVER}/send-alert`).catch(err => {}); 
+                }
             }
         }
 
@@ -785,17 +1059,6 @@
 
         checkTimeAndFetch();
         setInterval(checkTimeAndFetch, 5000); 
-
-        let hasAlerted = false;
-        setTimeout(() => {
-            const activeCount = document.querySelectorAll('.status-dot.active').length;
-            if (activeCount === 0 && !hasAlerted && !isNightTime()) {
-                hasAlerted = true;
-                document.getElementById('error-popup').style.display = 'flex';
-                startCountdown(); // Start 50-to-0 Bengali timer
-                fetch(`${SERVER}/send-alert`).catch(e => console.log("Alarm Error:", e));
-            }
-        }, 10000); 
 
         // --- PWA INSTALL APP LOGIC ---
         let deferredPrompt;
