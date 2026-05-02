@@ -463,11 +463,14 @@
         <div class="title">University Server Offline</div>
         <div class="text">The main BUFT <b>Bus</b> tracking system is currently down or updating bus IDs. Buses will automatically reappear here as soon as the university fixes their server.</div>
         <div style="margin-top: 10px; font-size: 11px;">
-            <a href="https://sms.buft.ac.bd/index.php?ctg=tracking" target="_blank" style="color: #b45309; text-decoration: underline; font-weight: 800;">🔗 Verify on official website sms.buft.ac.bd</a>
+            <a href="http://sms.buft.edu.bd" target="_blank" style="color: #b45309; text-decoration: underline; font-weight: 800;">🔗 Verify on official sms.buft.edu.bd</a>
         </div>
     </div>
 
-    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <button class="menu-btn" onclick="toggleSidebar()" style="position: relative;">
+        ☰
+        <span style="position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; background: #ef4444; border: 2px solid white; border-radius: 50%; animation: pulse-red 2s infinite;"></span>
+    </button>
 
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -491,6 +494,16 @@
 
         <button id="install-app-btn" style="display: none; background: #10b981; color: white; border: none; padding: 10px; border-radius: 10px; font-family: 'Outfit'; font-weight: 800; font-size: 14px; cursor: pointer; margin-bottom: 15px; width: 100%; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); transition: 0.3s;">📲 Install App to Home Screen</button>
         
+        <div class="bus-list-item" style="margin-bottom: 15px; background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); border: 1px solid #a5b4fc; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.15);" onclick="window.open('https://buftex.netlify.app/', '_blank')">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 22px;">🛠️</span>
+                <div>
+                    <b style="color:#312e81; display: block; font-size: 14px;">BUFT Tools</b>
+                    <span style="color:#4338ca; font-size: 11px; font-weight: 700;">Make cover page & More ✨</span>
+                </div>
+            </div>
+        </div>
+
         <input type="text" id="search-box" placeholder="Search bus..." onkeyup="filterSidebar()">
         
         <div id="night-notice-sidebar">🌙 <b>Service Paused</b><br>Server is offline from 9:30 PM to 7:00 AM.</div>
@@ -595,7 +608,7 @@
         let isSidebarBuilt = false;
         let popupTimerInterval = null; 
         
-        let maintenanceTimer = null; // Timer for the 8-second delay
+        let maintenanceTimer = null; 
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function toggleAbout() { const box = document.getElementById('about-box'); box.style.display = (box.style.display === "block") ? "none" : "block"; }
