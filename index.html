@@ -43,7 +43,6 @@
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background: #f0f2f5; overflow: hidden; transition: background 0.3s; }
         
-        /* FIXED THE WHITE GAP BUG HERE */
         #map { position: absolute; top: 0; left: 0; height: 100vh; width: 100%; z-index: 1; }
 
         .dashboard {
@@ -926,8 +925,11 @@
                 if (!res.ok) throw new Error("Server error");
                 const fleet = await res.json();
                 
+                // Server replied! It's awake, so hide the Opus wakeup screen unconditionally
                 closeWakeupScreen(); 
                 
+                // Check if BongoIoT sent valid GPS data for AT LEAST one bus
+                // (If the IDs are broken, ALL buses will default to lat: 0 and lng: 0)
                 const hasValidData = fleet.some(bus => bus.lat > 0 && bus.lng > 0);
 
                 if (hasValidData) {
@@ -935,7 +937,9 @@
                     maintenanceTimer = null;
                     document.getElementById('maintenance-notice').style.display = 'none'; 
                 } else {
+                    // Render replied, but data is completely dead (0,0) - BongoIoT is down / IDs broken
                     if (!maintenanceTimer && !isNightTime() && document.getElementById('maintenance-notice').style.display !== 'block') {
+                        // Start exactly an 8-second timer
                         maintenanceTimer = setTimeout(() => {
                             document.getElementById('maintenance-notice').style.display = 'block';
                         }, 8000); 
@@ -1104,7 +1108,7 @@
                 if (activeCount === 0 && !isNightTime()) {
                     if (!noActiveBusTimer && !telegramAlertSent) {
                         noActiveBusTimer = setTimeout(() => {
-                            // After exactly 30 continuous seconds of 0 buses, ping the server alert
+                            // After exactly 30 continuous seconds of 0 buses, send the Telegram alert!
                             fetch(`${SERVER}/send-alert`).catch(err => {});
                             telegramAlertSent = true; 
                         }, 30000); 
@@ -1123,8 +1127,7 @@
                 statusEl.style.color = "#ef4444";
                 
                 showWakeupScreen();
-                // We keep this backup ping just to wake up the server if it crashed/slept
-                fetch(`${SERVER}/send-alert`).catch(err => {}); 
+                // DELETED THE /send-alert COMMAND FROM HERE. NO MORE SPAM!
             }
         }
 
@@ -1153,9 +1156,6 @@
 
         checkTimeAndFetch();
         setInterval(checkTimeAndFetch, 5000); 
-
-        // I removed the old 10-second safety net alert from here because 
-        // the new 30-second logic above handles it much better and more accurately!
 
         // --- PWA INSTALL APP LOGIC ---
         let deferredPrompt;
