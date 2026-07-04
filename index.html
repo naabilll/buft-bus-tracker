@@ -62,6 +62,11 @@
         .loc-btn { margin-top: 8px; width: 100%; padding: 8px; background: #2563eb; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.3s; }
 
         .menu-btn { position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 12px 15px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); font-size: 20px; cursor: pointer; z-index: 1001; transition: background 0.3s, color 0.3s; }
+        .tools-btn { position: absolute; top: 75px; left: 15px; background: linear-gradient(135deg, #ffffff, #f3e8ff); border: 1px solid #e9d5ff; padding: 10px; border-radius: 15px; box-shadow: 0 8px 25px rgba(168,85,247,0.25); font-size: 22px; cursor: pointer; z-index: 1001; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; }
+        .tools-btn:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 12px 30px rgba(168,85,247,0.4); }
+        .tools-btn:active { transform: translateY(0) scale(0.95); }
+        .new-badge { position: absolute; top: -5px; right: -8px; background: linear-gradient(135deg, #a855f7, #7e22ce); color: white; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 12px; border: 2px solid #ffffff; animation: tool-bounce 2s infinite; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        @keyframes tool-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
         
         /* SIDEBAR */
         .sidebar { position: fixed; top: 0; left: -340px; width: 320px; height: 100%; background: white; z-index: 9999; transition: left 0.3s ease, background 0.3s; box-shadow: 5px 0 25px rgba(0,0,0,0.1); padding: 20px; overflow-y: auto; }
@@ -104,7 +109,7 @@
         #maintenance-notice {
             display: none;
             position: absolute;
-            top: 135px; /* Safely pushed down to clear the dashboard box */
+            top: 135px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(255, 251, 235, 0.95);
@@ -125,9 +130,6 @@
         #maintenance-notice .text { font-size: 12px; font-weight: 600; line-height: 1.4; }
         
         @keyframes slideDown { from { transform: translate(-50%, -20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-
-        .leaflet-bottom.leaflet-right { margin-bottom: 90px !important; }
-        .leaflet-control-zoom { box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important; border: none !important; }
 
         /* POPUPS */
         .leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: background 0.3s; }
@@ -184,248 +186,131 @@
 
         /* ─── OPUS SERVER WAKEUP OVERLAY CSS ─────────────────────────────────────────── */
         #server-wakeup-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            background: rgba(4, 8, 20, 0.65);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            animation: overlayFadeIn 0.6s ease forwards;
+            position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;
+            background: rgba(4, 8, 20, 0.65); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: overlayFadeIn 0.6s ease forwards;
         }
-
-        #server-wakeup-overlay.hidden {
-            animation: overlayFadeOut 0.5s ease forwards;
-            pointer-events: none;
-        }
-
+        #server-wakeup-overlay.hidden { animation: overlayFadeOut 0.5s ease forwards; pointer-events: none; }
         @keyframes overlayFadeIn  { from { opacity: 0; } to { opacity: 1; } }
         @keyframes overlayFadeOut { from { opacity: 1; } to { opacity: 0; } }
 
         .wakeup-card {
-            position: relative;
-            width: 100%;
-            max-width: 400px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 28px;
-            box-shadow: var(--glass-shadow);
-            backdrop-filter: blur(24px) saturate(160%);
-            -webkit-backdrop-filter: blur(24px) saturate(160%);
-            padding: 36px 32px 28px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0;
-            overflow: hidden;
+            position: relative; width: 100%; max-width: 400px; background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 28px; box-shadow: var(--glass-shadow); backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%);
+            padding: 36px 32px 28px; display: flex; flex-direction: column; align-items: center; gap: 0; overflow: hidden;
             animation: cardSlideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
-
         @keyframes cardSlideUp {
             from { opacity: 0; transform: translateY(28px) scale(0.96); }
             to   { opacity: 1; transform: translateY(0)    scale(1);    }
         }
-
         .wakeup-card::before {
-            content: '';
+            content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(100,175,255,0.55), transparent); border-radius: 50%;
+        }
+
+        .radar-wrap { position: relative; width: 120px; height: 120px; margin-bottom: 28px; flex-shrink: 0; }
+        .radar-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid var(--pulse-ring); animation: radarExpand 2.6s ease-out infinite; transform-origin: center; }
+        .radar-ring:nth-child(1) { animation-delay: 0s; } .radar-ring:nth-child(2) { animation-delay: 0.7s; } .radar-ring:nth-child(3) { animation-delay: 1.4s; }
+        @keyframes radarExpand { 0%   { transform: scale(0.5); opacity: 0.7; } 70%  { opacity: 0.15; } 100% { transform: scale(2.2); opacity: 0; } }
+        .radar-track { position: absolute; inset: 8px; border-radius: 50%; border: 1.5px solid var(--radar-track); }
+        .radar-spinner { position: absolute; inset: 8px; border-radius: 50%; border: 2.5px solid transparent; border-top-color: var(--accent); border-right-color: rgba(79,158,255,0.4); animation: spin 1.4s cubic-bezier(0.55, 0, 0.45, 1) infinite; filter: drop-shadow(0 0 6px var(--accent-glow)); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .radar-orb { position: absolute; inset: 30px; border-radius: 50%; background: radial-gradient(circle at 38% 38%, rgba(100, 180, 255, 0.3) 0%, rgba(40, 100, 220, 0.2) 45%, rgba(10, 30, 80, 0.15) 100%); border: 1px solid rgba(100,180,255,0.2); display: flex; align-items: center; justify-content: center; animation: orbBreath 3s ease-in-out infinite; }
+        @keyframes orbBreath { 0%, 100% { transform: scale(1); box-shadow: 0 0 16px var(--accent-glow); } 50% { transform: scale(1.08); box-shadow: 0 0 28px var(--accent-glow); } }
+        
+        .countdown-number { font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 600; color: var(--accent); line-height: 1; letter-spacing: -0.5px; text-shadow: 0 0 12px var(--accent-glow); transition: opacity 0.2s ease; }
+        .wakeup-title { font-family: 'Tiro Bangla', serif; font-size: 18px; font-weight: 400; color: var(--text-primary); text-align: center; line-height: 1.55; margin-bottom: 14px; }
+        .wakeup-body { font-family: 'Tiro Bangla', serif; font-size: 13.5px; font-weight: 400; color: var(--text-secondary); text-align: center; line-height: 1.75; margin-bottom: 26px; padding: 0 4px; }
+        .progress-track { width: 100%; height: 3px; background: var(--radar-track); border-radius: 99px; margin-bottom: 22px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, rgba(79,158,255,0.5), var(--accent)); box-shadow: 0 0 8px var(--accent-glow); width: 100%; transition: width 1s linear; transform-origin: left; }
+        .status-line { font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 22px; display: flex; align-items: center; gap: 7px; opacity: 0.7; }
+        .status-dot-pulse { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: dotBlink 1.8s ease-in-out infinite; }
+        @keyframes dotBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+        .dismiss-btn { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: 0.06em; color: rgba(130, 185, 255, 0.85); background: var(--dismiss-bg); border: 1px solid var(--dismiss-border); border-radius: 12px; padding: 10px 28px; cursor: pointer; transition: background 0.22s ease, color 0.22s ease, transform 0.15s ease, box-shadow 0.22s ease; outline: none; }
+        .dismiss-btn:hover { background: var(--dismiss-hover); color: rgba(190, 220, 255, 0.95); box-shadow: 0 0 18px var(--accent-dim); transform: translateY(-1px); }
+        .dismiss-btn:active { transform: translateY(0) scale(0.97); }
+
+        /* --- STYLISH MAP CONTROLS & ROUTING --- */
+        .map-controls-right {
             position: absolute;
-            top: 0; left: 10%; right: 10%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(100,175,255,0.55), transparent);
-            border-radius: 50%;
+            bottom: 30px; /* Moved to bottom as requested */
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
         }
 
-        .radar-wrap {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            margin-bottom: 28px;
-            flex-shrink: 0;
+        .map-action-btn {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
+            width: 44px; /* Reduced size */
+            height: 44px; /* Reduced size */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.18);
+            cursor: pointer;
+            color: #334155;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            transition: all 0.2s ease;
         }
+        .map-action-btn:hover { transform: scale(1.05); }
+        .map-action-btn:active { transform: scale(0.95); }
 
-        .radar-ring {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 1.5px solid var(--pulse-ring);
-            animation: radarExpand 2.6s ease-out infinite;
-            transform-origin: center;
+        .map-action-btn.traffic-active { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; box-shadow: 0 4px 15px rgba(22, 101, 52, 0.15); }
+        .map-action-btn.satellite-active { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; box-shadow: 0 4px 15px rgba(55, 48, 163, 0.15); }
+        
+        .custom-zoom-control {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 12px; /* Smoother curve */
+            width: 44px; /* Matches buttons */
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.18);
+            overflow: hidden;
         }
-        .radar-ring:nth-child(1) { animation-delay: 0s; }
-        .radar-ring:nth-child(2) { animation-delay: 0.7s; }
-        .radar-ring:nth-child(3) { animation-delay: 1.4s; }
-
-        @keyframes radarExpand {
-            0%   { transform: scale(0.5); opacity: 0.7; }
-            70%  { opacity: 0.15; }
-            100% { transform: scale(2.2); opacity: 0; }
-        }
-
-        .radar-track {
-            position: absolute;
-            inset: 8px;
-            border-radius: 50%;
-            border: 1.5px solid var(--radar-track);
-        }
-
-        .radar-spinner {
-            position: absolute;
-            inset: 8px;
-            border-radius: 50%;
-            border: 2.5px solid transparent;
-            border-top-color: var(--accent);
-            border-right-color: rgba(79,158,255,0.4);
-            animation: spin 1.4s cubic-bezier(0.55, 0, 0.45, 1) infinite;
-            filter: drop-shadow(0 0 6px var(--accent-glow));
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .radar-orb {
-            position: absolute;
-            inset: 30px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 38% 38%,
-                rgba(100, 180, 255, 0.3) 0%,
-                rgba(40, 100, 220, 0.2) 45%,
-                rgba(10, 30, 80, 0.15) 100%);
-            border: 1px solid rgba(100,180,255,0.2);
+        .custom-zoom-control button {
+            background: transparent;
+            border: none;
+            width: 44px;
+            height: 40px;
+            font-size: 20px;
+            font-weight: 400;
+            color: #334155;
+            cursor: pointer;
+            transition: 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: orbBreath 3s ease-in-out infinite;
         }
+        .custom-zoom-control button:active { background: #f1f5f9; }
+        .zoom-divider { height: 1px; background: #e2e8f0; width: 30px; margin: 0 auto; }
 
-        @keyframes orbBreath {
-            0%, 100% { transform: scale(1);    box-shadow: 0 0 16px var(--accent-glow); }
-            50%      { transform: scale(1.08); box-shadow: 0 0 28px var(--accent-glow); }
-        }
-
-        .countdown-number {
+        .route-info-box {
+            position: absolute; 
+            top: 85px; /* Pushed down to prevent overlapping dashboard/menu */
+            left: 50%; transform: translateX(-50%);
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            padding: 8px 12px; border-radius: 12px; border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 2000;
+            display: flex; align-items: center; gap: 12px; min-width: 220px;
             font-family: 'Outfit', sans-serif;
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--accent);
-            line-height: 1;
-            letter-spacing: -0.5px;
-            text-shadow: 0 0 12px var(--accent-glow);
-            transition: opacity 0.2s ease;
         }
-
-        .wakeup-title {
-            font-family: 'Tiro Bangla', serif;
-            font-size: 18px;
-            font-weight: 400;
-            color: var(--text-primary);
-            text-align: center;
-            line-height: 1.55;
-            letter-spacing: 0.01em;
-            margin-bottom: 14px;
-        }
-
-        .wakeup-body {
-            font-family: 'Tiro Bangla', serif;
-            font-size: 13.5px;
-            font-weight: 400;
-            color: var(--text-secondary);
-            text-align: center;
-            line-height: 1.75;
-            letter-spacing: 0.015em;
-            margin-bottom: 26px;
-            padding: 0 4px;
-        }
-
-        .progress-track {
-            width: 100%;
-            height: 3px;
-            background: var(--radar-track);
-            border-radius: 99px;
-            margin-bottom: 22px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            border-radius: 99px;
-            background: linear-gradient(90deg, rgba(79,158,255,0.5), var(--accent));
-            box-shadow: 0 0 8px var(--accent-glow);
-            width: 100%;  
-            transition: width 1s linear;
-            transform-origin: left;
-        }
-
-        .status-line {
-            font-family: 'Outfit', sans-serif;
-            font-size: 11px;
-            font-weight: 400;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            margin-bottom: 22px;
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            opacity: 0.7;
-        }
-
-        .status-dot-pulse {
-            width: 5px; height: 5px;
-            border-radius: 50%;
-            background: var(--accent);
-            box-shadow: 0 0 6px var(--accent);
-            animation: dotBlink 1.8s ease-in-out infinite;
-        }
-
-        @keyframes dotBlink {
-            0%, 100% { opacity: 1; }
-            50%      { opacity: 0.2; }
-        }
-
-        .dismiss-btn {
-            font-family: 'Outfit', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            letter-spacing: 0.06em;
-            color: rgba(130, 185, 255, 0.85);
-            background: var(--dismiss-bg);
-            border: 1px solid var(--dismiss-border);
-            border-radius: 12px;
-            padding: 10px 28px;
-            cursor: pointer;
-            transition: background 0.22s ease, color 0.22s ease, transform 0.15s ease, box-shadow 0.22s ease;
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .dismiss-btn:hover {
-            background: var(--dismiss-hover);
-            color: rgba(190, 220, 255, 0.95);
-            box-shadow: 0 0 18px var(--accent-dim);
-            transform: translateY(-1px);
-        }
-
-        .dismiss-btn:active {
-            transform: translateY(0) scale(0.97);
-        }
-
-        @media (max-width: 420px) {
-            .wakeup-card { padding: 28px 22px 22px; border-radius: 24px; }
-            .radar-wrap { width: 100px; height: 100px; margin-bottom: 22px; }
-            .radar-orb  { inset: 24px; }
-            .countdown-number { font-size: 19px; }
-            .wakeup-title { font-size: 16.5px; }
-            .wakeup-body  { font-size: 13px; }
-        }
+        .route-line { stroke-linecap: round; stroke-linejoin: round; }
 
         /* --- DARK MODE CSS OVERRIDES --- */
         body.dark-mode { background: #0f172a; }
         body.dark-mode .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
         body.dark-mode .dashboard, body.dark-mode .sidebar, body.dark-mode .menu-btn { background: #1e293b; color: #f8fafc; }
+        body.dark-mode .tools-btn { background: linear-gradient(135deg, #1e293b, #3b2856); border-color: #581c87; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
+        body.dark-mode .new-badge { border-color: #1e293b; }
         body.dark-mode .dashboard h2, body.dark-mode .sidebar-header h2, body.dark-mode .bus-name { color: #f8fafc; }
         body.dark-mode #status-text { background: #334155; color: #cbd5e1 !important; }
         body.dark-mode .bus-list-item { background: #334155; color: #cbd5e1; }
@@ -445,15 +330,40 @@
         body.dark-mode .track-link { background: #334155; color: #f8fafc; }
         body.dark-mode .whats-new-toggle { background: #1e3a8a; color: #bfdbfe; }
         body.dark-mode .whats-new-toggle:hover { background: #233876; }
-        
-        /* DARK MODE FOR MAINTENANCE NOTICE */
-        body.dark-mode #maintenance-notice {
-            background: rgba(69, 26, 3, 0.95);
-            border-color: #b45309;
-            color: #fde68a;
-        }
+        body.dark-mode #maintenance-notice { background: rgba(69, 26, 3, 0.95); border-color: #b45309; color: #fde68a; }
         body.dark-mode #maintenance-notice .title { color: #fcd34d; }
         body.dark-mode #maintenance-notice a { color: #fcd34d !important; }
+        body.dark-mode .map-action-btn, 
+        body.dark-mode .custom-zoom-control { background: #1e293b; color: #f8fafc; border: 1px solid #334155; }
+        body.dark-mode .custom-zoom-control button { color: #f8fafc; }
+        body.dark-mode .zoom-divider { background: #334155; }
+        body.dark-mode .route-info-box { background: #1e293b; border-color: #334155; color: #f8fafc; }
+        
+        /* Premium Compact Popup overrides */
+        .leaflet-popup-content-wrapper { padding: 0 !important; border-radius: 12px !important; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important; }
+        .leaflet-popup-content { margin: 0 !important; width: 240px !important; }
+        body.dark-mode .leaflet-popup-content-wrapper { background: #1e293b !important; }
+        body.dark-mode .custom-popup .info-grid { background: #334155 !important; border-color: #475569 !important; }
+        body.dark-mode .custom-popup .info-grid b { color: #f8fafc !important; }
+        body.dark-mode .custom-popup .address-text { color: #cbd5e1 !important; }
+
+        /* --- GOOGLE MAPS EMBED MODAL --- */
+        #embed-modal-overlay { position: fixed; inset: 0; z-index: 10000; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); animation: fadeIn 0.3s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .embed-modal { width: 90%; max-width: 500px; height: 75vh; max-height: 600px; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; transform: translateY(20px); animation: slideUpModal 0.3s ease forwards; }
+        @keyframes slideUpModal { to { transform: translateY(0); } }
+        .embed-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+        .embed-modal-title { font-size: 16px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+        .embed-close-btn { background: #fee2e2; border: none; color: #ef4444; width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .embed-close-btn:hover { background: #fecaca; transform: scale(1.1); }
+        .embed-iframe-container { flex: 1; width: 100%; height: 100%; background: #e2e8f0; position: relative; }
+        .embed-iframe-container iframe { width: 100%; height: 100%; border: none; position: relative; z-index: 1; }
+        .embed-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #64748b; z-index: 0; }
+        
+        body.dark-mode .embed-modal { background: #1e293b; }
+        body.dark-mode .embed-modal-header { background: #0f172a; border-color: #334155; }
+        body.dark-mode .embed-modal-title { color: #f8fafc; }
+        body.dark-mode .embed-iframe-container { background: #334155; }
     </style>
 </head>
 <body>
@@ -472,6 +382,11 @@
         ☰
         <span style="position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; background: #ef4444; border: 2px solid white; border-radius: 50%; animation: pulse-red 2s infinite;"></span>
     </button>
+
+    <a href="https://buftex.netlify.app/" target="_blank" class="tools-btn" title="BUFT Tools">
+        🛠️
+        <span class="new-badge">NEW</span>
+    </a>
 
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -495,8 +410,7 @@
 
         <button id="install-app-btn" style="display: none; background: #10b981; color: white; border: none; padding: 10px; border-radius: 10px; font-family: 'Outfit'; font-weight: 800; font-size: 14px; cursor: pointer; margin-bottom: 15px; width: 100%; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); transition: 0.3s;">📲 Install App to Home Screen</button>
         
-                <div style="font-size: 12px; font-weight: 800; color: #64748b; margin-bottom: 6px; padding-left: 4px;">Check out the all new BUFT tools 👇:</div>
-        
+        <div style="font-size: 12px; font-weight: 800; color: #64748b; margin-bottom: 6px; padding-left: 4px;">Check out the all new BUFT tools 👇:</div>
         <div class="bus-list-item" style="margin-bottom: 15px; background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); border: 1px solid #a5b4fc; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.15);" onclick="window.open('https://buftex.netlify.app/', '_blank')">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="font-size: 22px;">🛠️</span>
@@ -507,7 +421,6 @@
             </div>
         </div>
 
-
         <input type="text" id="search-box" placeholder="Search bus..." onkeyup="filterSidebar()">
         
         <div id="night-notice-sidebar">🌙 <b>Service Paused</b><br>Server is offline from 9:30 PM to 7:00 AM.</div>
@@ -517,37 +430,44 @@
         
         <div class="bus-list-item" style="margin-top: 15px; background: #e0f2fe; border: 1px solid #bae6fd;" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSdVfOC1bZcv20mZT5X52iGHORek0H8XPV-3HNhmwrcPr1O6_w/viewform?usp=header', '_blank')"><b style="color:#0f172a;">💬 Give Feedback</b></div>
         
+        <div class="bus-list-item" style="margin-top: 10px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1px solid #bfdbfe; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.15);" onclick="window.open('https://t.me/buftbus', '_blank')">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 22px;">🚌</span>
+                <div>
+                    <b style="color:#1e40af; display: block; font-size: 14px;">BUFT Bus Community</b>
+                    <span style="color:#3b82f6; font-size: 11px; font-weight: 700;">Join Telegram Group</span>
+                </div>
+            </div>
+        </div>
+        
         <div class="bus-list-item about-toggle-btn" onclick="toggleAbout()">ℹ️ About</div>
         <div id="about-box" class="about-content">
-            <div class="about-title">BUFT Unified Bus Tracker <span style="font-size:12px; background:#2563eb; color:white; padding:2px 6px; border-radius:4px; vertical-align:middle;">V3.0</span></div>
+            <div class="about-title">BUFT Unified Bus Tracker <span style="font-size:12px; background:#2563eb; color:white; padding:2px 6px; border-radius:4px; vertical-align:middle;">V4.0</span></div>
             <p style="margin: 0 0 10px 0;">A comprehensive student-led idea designed to modernize University transportation.</p>
             
             <div class="about-limit">Key Features:</div>
             <ul class="new-feature-list">
-                <li><b>Real-Time Map Tracking:</b> Instantly see the exact, live location of all university buses on an interactive map.</li>
-                <li><b>Route Identification:</b> Easily find which bus is heading to your destination (e.g., Mirpur, Tongi, Azampur, etc.) by tapping the bus icons.</li>
-                <li><b>Live Status & Speed:</b> Check if your bus is currently moving, stopped, or inactive, along with its current speed in km/h.</li>
-                <li><b>Driver Information:</b> View the assigned driver's name and contact information (if available) directly from the map.</li>
-                <li><b>Mobile-Optimized:</b> Designed to work smoothly on your smartphone so you can track your ride while on the go.</li>
+                <li><b>Live Map:</b> See exactly where all buses are right now.</li>
+                <li><b>Smart Colors:</b> Bus icons are colored (Green=Moving, Yellow=Idle, Red=Offline) so you know their status.</li>
+                <li><b>Find Your Bus:</b> Click any bus to see its driver, phone number, and route.</li>
+                <li><b>Get Directions:</b> Tap "Catch Bus" to walk to your bus, or "Route to BUFT" to navigate to campus.</li>
+                <li><b>Crowd Updates:</b> See if a bus is full, and report it to help others!</li>
             </ul>
 
             <div class="whats-new-toggle" onclick="toggleWhatsNew()">
-                <span>🚀 What's New in V3.0</span>
+                <span>🚀 What's New in V4.0</span>
                 <span id="whats-new-icon">▼</span>
             </div>
             <div id="whats-new-content">
                 <ul class="new-feature-list">
-                    <li><b>Crowdsourced Capacity:</b> Real-time "Mostly Full" and "Full" passenger reports to help you plan your ride.</li>
-                    <li><b>Live Compass:</b> "Locate Me" features a rotating blue beam showing your exact direction.</li>
-                    <li><b>Embedded Labels:</b> Bus numbers sit perfectly centered on map icons for instant reading.</li>
-                    <li><b>True Dark Mode:</b> A sleek menu switch automatically darkens the app and map tiles.</li>
-                    <li><b>Sidebar Search:</b> Instantly find specific buses or routes without scrolling.</li>
-                    <li><b>Dynamic Colors:</b> Icons and dots accurately reflect running, stopped, or inactive states.</li>
-                    <li><b>Readable Times:</b> Inactive durations are formatted cleanly (e.g., "Inactive for 22h 06m").</li>
+                    <li><b>Live Traffic:</b> Check for road jams directly on the map with the new traffic toggle.</li>
+                    <li><b>In-App Navigation:</b> "Catch Bus" and "Route to BUFT" now show the exact driving/walking path directly inside a pop-up window!</li>
+                    <li><b>Satellite View:</b> New toggle to see real-world satellite imagery of the roads.</li>
+                    <li><b>Cleaner Layout:</b> Bus popups are now much more compact, modern, and easy to read.</li>
                 </ul>
             </div>
 
-            <div class="about-credits">Developed By: <a href="https://www.facebook.com/NabilShazzad" target="_blank" style="color: #2563eb; text-decoration: none;"><b>Shazzad Hossain Nabil (TE_221)</b></a> <br>Assisted by: <b>Google Gemini AI</b>
+            <div class="about-credits">Developed By: <a href="https://www.facebook.com/NabilShazzad" target="_blank" style="color: #2563eb; text-decoration: none;"><b>Shazzad Hossain Nabil (TE_221)</b></a>
                 <div style="margin-top: 10px;">
                     <img src="https://hits.sh/naabilll.github.io/buft-bus-tracker.svg?label=Total%20Visitors&extraCount=14000&color=2563eb&labelColor=0f172a" alt="Total Visitors">
                 </div>
@@ -592,11 +512,134 @@
         <button onclick="findUser()" class="loc-btn"><span>📍</span> Locate Me</button>
     </div>
 
+    <div class="map-controls-right">
+        <button id="satellite-toggle-btn" class="map-action-btn" onclick="toggleSatelliteView()" title="Toggle Satellite">
+            <span style="font-size: 16px; line-height: 1;">🌍</span>
+            <span style="font-size: 7px; margin-top: 1px; font-weight: 900; letter-spacing: -0.2px;">Satellite</span>
+        </button>
+
+        <button id="traffic-toggle-btn" class="map-action-btn traffic-btn" onclick="toggleMapTraffic()" title="Toggle Traffic">
+            <span style="font-size: 16px; line-height: 1;">🚦</span>
+            <span style="font-size: 8px; margin-top: 1px;">Traffic</span>
+        </button>
+
+        <button class="map-action-btn" style="color: #2563eb;" onclick="window.open('https://t.me/buftbus', '_blank')" title="Report Issue on Telegram">
+            <span style="font-size: 16px; line-height: 1;">📢</span>
+            <span style="font-size: 7px; margin-top: 1px; font-weight: 900; letter-spacing: -0.2px;">Report Issue</span>
+        </button>
+
+        <div class="custom-zoom-control">
+            <button onclick="map.zoomIn()" title="Zoom In">+</button>
+            <div class="zoom-divider"></div>
+            <button onclick="map.zoomOut()" title="Zoom Out">−</button>
+        </div>
+
+        <button id="locate-me-btn" class="map-action-btn" onclick="findUser()" title="Locate Me">
+            <svg id="locate-icon-target" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg id="locate-icon-compass" style="display:none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+                <circle cx="12" cy="12" r="10"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- GOOGLE MAPS EMBED MODAL -->
+    <div id="embed-modal-overlay">
+        <div class="embed-modal">
+            <div class="embed-modal-header">
+                <div class="embed-modal-title" id="embed-modal-title">🗺️ Live Route</div>
+                <button class="embed-close-btn" onclick="closeEmbedModal()">✖</button>
+            </div>
+            <div class="embed-iframe-container">
+                <div class="embed-loading">Loading Maps...</div>
+                <iframe id="embed-iframe" src=""></iframe>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Zoom control natively disabled to use custom buttons
         const map = L.map('map', {zoomControl: false, attributionControl: false}).setView([23.8741, 90.3992], 12);
-        L.control.zoom({position: 'bottomright'}).addTo(map);
         L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'] }).addTo(map);
+
+        // --- BUFT LOGO MARKER ---
+        const buftIcon = L.icon({
+            iconUrl: 'buftlogo.png',
+            iconSize: [35, 50], // Compressed from the sides (narrower width)
+            iconAnchor: [17, 25],
+            popupAnchor: [0, -25]
+        });
+        // Using the predefined BUFT_LAT and BUFT_LNG which point to the actual building
+        L.marker([23.884750, 90.361350], {icon: buftIcon}).addTo(map)
+         .bindPopup("<div style='text-align:center; font-weight:900; font-family:Outfit; font-size:16px; color:#2563eb; width: 180px;'>BGMEA University of Fashion & Technology (BUFT)</div>");
         
+        // --- TILE LAYER MANAGEMENT (TRAFFIC & SATELLITE) ---
+        let isTrafficOn = false;
+        let isSatelliteOn = false;
+
+        function updateMapLayer() {
+            map.eachLayer((layer) => {
+                if (layer instanceof L.TileLayer) {
+                    map.removeLayer(layer);
+                }
+            });
+            let baseLyrs = isSatelliteOn ? 'y' : 'm'; // 'y' is Hybrid Satellite, 'm' is Standard Map
+            let finalLyrs = isTrafficOn ? (baseLyrs + ',traffic') : baseLyrs;
+            L.tileLayer(`https://{s}.google.com/vt/lyrs=${finalLyrs}&x={x}&y={y}&z={z}`, { maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'] }).addTo(map);
+        }
+
+        function toggleMapTraffic() {
+            const btn = document.getElementById('traffic-toggle-btn');
+            isTrafficOn = !isTrafficOn;
+            btn.classList.toggle('traffic-active', isTrafficOn);
+            updateMapLayer();
+        }
+
+        function toggleSatelliteView() {
+            const btn = document.getElementById('satellite-toggle-btn');
+            isSatelliteOn = !isSatelliteOn;
+            btn.classList.toggle('satellite-active', isSatelliteOn);
+            updateMapLayer();
+        }
+
+        // --- ROUTING LOGIC (GOOGLE MAPS EMBED MODAL) ---
+        const BUFT_LAT = 23.884750; 
+        const BUFT_LNG = 90.361350; 
+
+        function openEmbedModal(startLat, startLng, destLat, destLng, title) {
+            document.getElementById('embed-modal-title').innerText = title;
+            const iframe = document.getElementById('embed-iframe');
+            iframe.src = `https://maps.google.com/maps?saddr=${startLat},${startLng}&daddr=${destLat},${destLng}&output=embed`;
+            document.getElementById('embed-modal-overlay').style.display = 'flex';
+        }
+
+        window.closeEmbedModal = function() {
+            document.getElementById('embed-modal-overlay').style.display = 'none';
+            document.getElementById('embed-iframe').src = "";
+        }
+
+        // 1: Route from User to Bus (Walking)
+        window.getDirectionsToBus = function(busId, destLat, destLng) {
+            if (!userMarker) {
+                alert("Please tap 'Locate Me' first to get directions from your position.");
+                findUser();
+                return;
+            }
+            map.closePopup();
+            const startLat = userMarker.getLatLng().lat;
+            const startLng = userMarker.getLatLng().lng;
+            openEmbedModal(startLat, startLng, destLat, destLng, "🚶 Walking to Bus");
+        }
+
+        // 2: Route from Bus to University (Driving)
+        window.getDirectionsToUni = function(busId, busLat, busLng) {
+            map.closePopup();
+            openEmbedModal(busLat, busLng, BUFT_LAT, BUFT_LNG, "🚍 Bus to University");
+        }
+
         const SERVER = "https://bus-server-lr2x.onrender.com"; 
 
         // UNIQUE USER ID FOR TROLL PREVENTION
@@ -614,7 +657,6 @@
         
         let maintenanceTimer = null; 
         
-        // --- NEW VARIABLES FOR TELEGRAM 30-SEC TRACKING ---
         let noActiveBusTimer = null;
         let telegramAlertSent = false;
 
@@ -762,7 +804,9 @@
 
         function findUser() {
             if (!navigator.geolocation) { alert("GPS not supported."); return; }
-            const btn = document.querySelector('.loc-btn');
+            const dashBtn = document.querySelector('.loc-btn');
+            const targetIcon = document.getElementById('locate-icon-target');
+            const compassIcon = document.getElementById('locate-icon-compass');
             
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
@@ -773,12 +817,17 @@
                     orientationHandler = null;
                 }
                 if(userMarker) { map.removeLayer(userMarker); userMarker = null; }
-                btn.innerHTML = "<span>📍</span> Locate Me";
-                btn.style.background = "#2563eb"; 
+                
+                dashBtn.innerHTML = "<span>📍</span> Locate Me";
+                dashBtn.style.background = "#2563eb"; 
+                if(targetIcon) targetIcon.style.display = 'block';
+                if(compassIcon) compassIcon.style.display = 'none';
                 return;
             }
 
-            btn.innerHTML = "📡 Connecting GPS...";
+            dashBtn.innerHTML = "📡 Connecting GPS...";
+            if(targetIcon) targetIcon.style.display = 'none';
+            if(compassIcon) compassIcon.style.display = 'block';
             
             const blueIconHtml = `
             <div id="user-direction-wrapper" style="position:relative; width:16px; height:16px;">
@@ -817,12 +866,14 @@
                     }
                 }
                 
-                btn.innerHTML = "<span>🎯</span> Tracking Active";
-                btn.style.background = "#10b981"; 
+                dashBtn.innerHTML = "<span>🎯</span> Tracking Active";
+                dashBtn.style.background = "#10b981"; 
             }, () => { 
                 alert("Location denied."); 
-                btn.innerHTML = "❌ Denied"; 
-                btn.style.background = "#ef4444";
+                dashBtn.innerHTML = "❌ Denied"; 
+                dashBtn.style.background = "#ef4444";
+                if(targetIcon) targetIcon.style.display = 'block';
+                if(compassIcon) compassIcon.style.display = 'none';
             }, { enableHighAccuracy: true, maximumAge: 0 }); 
         }
 
@@ -928,11 +979,8 @@
                 if (!res.ok) throw new Error("Server error");
                 const fleet = await res.json();
                 
-                // Server replied! It's awake, so hide the Opus wakeup screen unconditionally
                 closeWakeupScreen(); 
                 
-                // Check if BongoIoT sent valid GPS data for AT LEAST one bus
-                // (If the IDs are broken, ALL buses will default to lat: 0 and lng: 0)
                 const hasValidData = fleet.some(bus => bus.lat > 0 && bus.lng > 0);
 
                 if (hasValidData) {
@@ -940,9 +988,7 @@
                     maintenanceTimer = null;
                     document.getElementById('maintenance-notice').style.display = 'none'; 
                 } else {
-                    // Render replied, but data is completely dead (0,0) - BongoIoT is down / IDs broken
                     if (!maintenanceTimer && !isNightTime() && document.getElementById('maintenance-notice').style.display !== 'block') {
-                        // Start exactly an 8-second timer
                         maintenanceTimer = setTimeout(() => {
                             document.getElementById('maintenance-notice').style.display = 'block';
                         }, 8000); 
@@ -1023,44 +1069,65 @@
                             capacityWarningHtml = `<div style="background:#ffedd5; color:#c2410c; padding:8px; border-radius:8px; font-size:12px; font-weight:800; text-align:center; margin-bottom:10px; border:1px solid #fdba74;">⚠️ BUS ALMOST FULL</div>`;
                         }
 
+                        // INJECTED ROUTING HTML
+                        let routingButtonsHtml = `
+                        <div style="display:flex; gap:6px; margin-bottom:8px;">
+                            <button class="report-btn" style="background:#2563eb; flex:1; padding:6px; font-size:11px; margin:0;" onclick="getDirectionsToBus('${bus.id}', ${bus.lat}, ${bus.lng})">
+                                📍 Catch Bus
+                            </button>
+                            <button class="report-btn" style="background:#10b981; flex:1; padding:6px; font-size:11px; margin:0;" onclick="getDirectionsToUni('${bus.id}', ${bus.lat}, ${bus.lng})">
+                                🎓 Route to BUFT
+                            </button>
+                        </div>`;
+
                         let reportButtonsHtml = '';
                         if (bus.capacityStatus === 'Full' || bus.capacityStatus === 'Maybe Full') {
                             reportButtonsHtml = `
-                            <div class="report-actions">
-                                <button class="report-btn" onclick="submitCapacityReport('${bus.id}', this, 'full')">📈 Full</button>
-                                <button class="report-btn unreport-btn" onclick="submitCapacityReport('${bus.id}', this, 'not-full')">📉 Not Full</button>
+                            <div class="report-actions" style="display:flex; gap:6px; margin-top:0;">
+                                <button class="report-btn" style="flex:1; padding:6px; font-size:11px; margin:0;" onclick="submitCapacityReport('${bus.id}', this, 'full')">📈 Full</button>
+                                <button class="report-btn unreport-btn" style="flex:1; padding:6px; font-size:11px; margin:0;" onclick="submitCapacityReport('${bus.id}', this, 'not-full')">📉 Not Full</button>
                             </div>`;
                         } else {
                             reportButtonsHtml = `
-                            <button class="report-btn" style="width:100%; margin-top:10px;" onclick="submitCapacityReport('${bus.id}', this, 'full')">🚌 Report Bus as Full</button>`;
+                            <button class="report-btn" style="width:100%; padding:6px; font-size:11px; margin:0;" onclick="submitCapacityReport('${bus.id}', this, 'full')">🚌 Report Bus as Full</button>`;
                         }
 
                         const popup = `
-                            <div class="popup-header" style="background:${busColor}">
-                                <span>🚌 ${bus.name}</span>
-                            </div>
-                            <div class="popup-body">
-                                ${capacityWarningHtml}
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                                    <span class="status-badge" style="background:${badgeBg}; color:${busColor};">
-                                        ${bus.status}
-                                    </span>
-                                    <span style="font-size:12px; font-weight:700; color:#64748b;">
-                                        ⏳ ${durationText}
-                                    </span>
+                            <div class="custom-popup" style="font-family: 'Outfit', sans-serif;">
+                                <div style="background:${busColor}; padding:10px 12px; border-radius:12px 12px 0 0; color:white; font-weight:700; font-size:14px; display:flex; justify-content:space-between; align-items:center;">
+                                    <span>🚍 ${bus.name}</span>
                                 </div>
+                                <div style="padding:12px;">
+                                    ${capacityWarningHtml}
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                        <span style="background:${badgeBg}; color:${busColor}; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:800;">${bus.status}</span>
+                                        <span style="font-size:11px; font-weight:700; color:#64748b;">⏳ ${durationText}</span>
+                                    </div>
 
-                                <div class="info-row"><span class="info-icon">👤</span> <b>${driverName}</b></div>
-                                <div class="info-row"><span class="info-icon">📞</span> <a href="tel:${mobileNo}" style="color:#2563eb; text-decoration:none; font-weight:700;">${mobileNo}</a></div>
-                                <div class="info-row"><span class="info-icon">🚀</span> <b>${bus.speed} km/h</b></div>
-                                <div class="info-row"><span class="info-icon">📍</span> ${bus.address}</div>
+                                    <div class="info-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; background:#f8fafc; padding:8px; border-radius:8px; margin-bottom:10px; border:1px solid #e2e8f0;">
+                                        <div style="grid-column:1/-1; font-size:12px; display:flex; align-items:center; gap:6px;">
+                                            <span>👤</span> <b style="color:#1e293b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${driverName}</b>
+                                        </div>
+                                        <div style="font-size:11px; display:flex; align-items:center; gap:6px;">
+                                            <span>📞</span> <a href="tel:${mobileNo}" style="color:#3b82f6; text-decoration:none; font-weight:700;">${mobileNo}</a>
+                                        </div>
+                                        <div style="font-size:11px; display:flex; align-items:center; gap:6px;">
+                                            <span>🚀</span> <b style="color:#ef4444;">${bus.speed} km/h</b>
+                                        </div>
+                                    </div>
 
-                                <div style="font-size:10px; color:#94a3b8; text-align:right; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:6px;">
-                                    Updated: ${fixTime(bus.updated)}
+                                    <div class="address-text" style="font-size:11px; color:#475569; display:flex; align-items:flex-start; gap:6px; margin-bottom:10px; line-height:1.3;">
+                                        <span style="margin-top:1px;">📍</span> <span>${bus.address}</span>
+                                    </div>
+
+                                    <div style="font-size:9px; color:#94a3b8; text-align:right; margin-bottom:10px;">Updated: ${fixTime(bus.updated)}</div>
+                                    
+                                    <div style="display:flex; flex-direction:column; gap:6px;">
+                                        <a href="https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}" target="_blank" style="display:block; text-align:center; background:#e2e8f0; color:#0f172a; padding:6px; border-radius:8px; text-decoration:none; font-weight:700; font-size:11px;">🔗 Open Full Live Tracker</a>
+                                        ${routingButtonsHtml}
+                                        ${reportButtonsHtml}
+                                    </div>
                                 </div>
-                                <a href="https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}" target="_blank" class="track-link">🔗 Open Full Live Tracker</a>
-                                
-                                ${reportButtonsHtml}
                             </div>`;
                         
                         const svgString = getBusSVG(busColor);
@@ -1106,18 +1173,14 @@
                     statusEl.style.color = "#ef4444";
                 }
 
-                // --- 30 SECOND TELEGRAM ALERT LOGIC ---
-                // If there are exactly 0 active buses, and it's daytime, start the 30 sec tracker
                 if (activeCount === 0 && !isNightTime()) {
                     if (!noActiveBusTimer && !telegramAlertSent) {
                         noActiveBusTimer = setTimeout(() => {
-                            // After exactly 30 continuous seconds of 0 buses, send the Telegram alert!
                             fetch(`${SERVER}/send-alert`).catch(err => {});
                             telegramAlertSent = true; 
                         }, 30000); 
                     }
                 } else if (activeCount > 0) {
-                    // If even a single bus comes back online, cancel the timer instantly!
                     clearTimeout(noActiveBusTimer);
                     noActiveBusTimer = null;
                     telegramAlertSent = false; 
@@ -1128,16 +1191,13 @@
                 console.log("Network scan error.", e);
                 statusEl.innerText = `⚠️ Connection Error`;
                 statusEl.style.color = "#ef4444";
-                
                 showWakeupScreen();
-                // DELETED THE /send-alert COMMAND FROM HERE. NO MORE SPAM!
             }
         }
 
         function isNightTime() {
             const dhakaTime = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Dhaka"}));
             const h = dhakaTime.getHours(); const m = dhakaTime.getMinutes();
-            // From 9:30 PM (21:30) until 7:00 AM (07:00)
             return (h > 21) || (h === 21 && m >= 30) || (h < 7);
         }
 
