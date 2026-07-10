@@ -152,9 +152,9 @@ module.exports = async (req, res) => {
         const fleetStatus = await Promise.all(trackingPromises);
         
         // Return structured dashboard data back to frontend
-        res.status(200).json({ success: true, fleet: fleetStatus });
+        res.status(200).json(fleetStatus);
 
     } catch (globalError) {
-        res.status(500).json({ success: false, error: globalError.message });
+        res.status(500).json([]);
     }
 };
