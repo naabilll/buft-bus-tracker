@@ -1,5 +1,6 @@
 const axios = require('axios');
 const https = require('https');
+const { URLSearchParams } = require('url');
 
 // Your exact original fallback bus list
 const BUSES = [
@@ -31,14 +32,63 @@ const BUSES = [
     { name: "BRTC 04: Azampur", id: "367612", imei: "863051061998075" }
 ];
 
+const agent = new https.Agent({ rejectUnauthorized: false });
+
+// GLOBAL CACHE (This mimics Render's behavior in Serverless)
+let masterFleetCache = [];
+let CACHED_COOKIE = "";
+let lastScrapeTimestamp = 0;
+let dynamicIDs = {}; 
+
 function formatRouteName(str) {
-    let titleCased = str.toLowerCase().split(' ').map(word => {
-        return word.charAt(0).toUpperCase() + word.slice(1);
-    }).join(' ');
+    let titleCased = str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     return titleCased.replace(/\(\s+/g, '(').replace(/\s+\)/g, ')');
 }
 
-const agent = new https.Agent({ rejectUnauthorized: false });
+async function scrapeAndUpdateIDs() {
+    try {
+        const res = await axios.get("https://sms.buft.ac.bd/index.php?ctg=tracking", { httpsAgent: agent, timeout: 10000 });
+        const html = res.data;
+        const rowRegex = /<tr[^>]*>[\s\S]*?<td[^>]*>(.*?)<\/td>\s*<td[^>]*>(.*?)<\/td>[\s\S]*?param=([a-zA-Z0-9=]+)/gi;
+        
+        let match;
+        while ((match = rowRegex.exec(html)) !== null) {
+            const rawRoute = match[1].replace(/<[^>]*>?/gm, '').trim(); 
+            const busNum = match[2].replace(/<[^>]*>?/gm, '').trim();
+            const decoded = Buffer.from(match[3].trim(), 'base64').toString('utf-8');
+            const newId = decoded.split('&')[0];
+
+            if (busNum && newId) {
+                const busMatchString = busNum.toUpperCase().startsWith("BRTC") ? busNum : `Bus ${busNum.padStart(2, '0')}`;
+                dynamicIDs[busMatchString] = { id: newId, route: formatRouteName(rawRoute) };
+            }
+        }
+        lastScrapeTimestamp = Date.now();
+    } catch (e) {
+        console.error("Scraper Failed");
+    }
+}
+
+async function getCookie(activeFleet) {
+    if (CACHED_COOKIE) return CACHED_COOKIE;
+    try {
+        let activeBusId = activeFleet[0].id; 
+        const updatedBus = activeFleet.find(b => b.id !== "367581" && b.id !== "368930");
+        if (updatedBus) activeBusId = updatedBus.id;
+
+        const activeParam = Buffer.from(activeBusId + "&Bus&EN").toString('base64');
+        const res = await axios.get(`https://app.bongoiot.com/jsp/quickview.jsp?param=${activeParam}`, { httpsAgent: agent, timeout: 10000 });
+        
+        const rawCookies = res.headers['set-cookie'];
+        if (rawCookies) {
+            CACHED_COOKIE = rawCookies.map(c => c.split(';')[0]).join('; ');
+            return CACHED_COOKIE;
+        }
+    } catch (e) {
+        console.error("Cookie Fetch Failed");
+    }
+    return "JSESSIONID=dummy"; 
+}
 
 module.exports = async (req, res) => {
     // Vercel Serverless CORS Setup
@@ -47,66 +97,46 @@ module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
     res.setHeader('Access-Control-Allow-Headers', '*');
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
+    if (req.method === 'OPTIONS') return res.status(200).end();
 
     try {
-        // --- 1. YOUR EXACT AUTO-HEALING SCRAPER ---
-        let activeFleet = JSON.parse(JSON.stringify(BUSES));
-        try {
-            const scrapeRes = await axios.get("https://sms.buft.ac.bd/index.php?ctg=tracking", { httpsAgent: agent, timeout: 10000 });
-            const html = scrapeRes.data;
-            const rowRegex = /<tr[^>]*>[\s\S]*?<td[^>]*>(.*?)<\/td>\s*<td[^>]*>(.*?)<\/td>[\s\S]*?param=([a-zA-Z0-9=]+)/gi;
-            
-            let match;
-            while ((match = rowRegex.exec(html)) !== null) {
-                const rawRoute = match[1].replace(/<[^>]*>?/gm, '').trim(); 
-                const busNum = match[2].replace(/<[^>]*>?/gm, '').trim();
-                const decoded = Buffer.from(match[3].trim(), 'base64').toString('utf-8');
-                const newId = decoded.split('&')[0];
+        const now = Date.now();
 
-                if (!busNum || !newId) continue;
-
-                const busMatchString = busNum.toUpperCase().startsWith("BRTC") ? busNum : `Bus ${busNum.padStart(2, '0')}`;
-                const targetBus = activeFleet.find(b => b.name.startsWith(busMatchString));
-
-                if (targetBus) {
-                    targetBus.id = newId;
-                    targetBus.name = `${busMatchString}: ${formatRouteName(rawRoute)}`;
-                }
-            }
-        } catch (e) {
-            console.error("Scrape failed, using fallback IDs");
+        // 1. Refresh IDs only if cache is empty or older than 3 hours
+        if (Object.keys(dynamicIDs).length === 0 || now - lastScrapeTimestamp > 10800000) {
+            await scrapeAndUpdateIDs();
         }
 
-        // --- 2. YOUR EXACT COOKIE GENERATOR ---
-        let sessionCookie = "JSESSIONID=dummy";
-        try {
-            let activeBusId = activeFleet[0].id;
-            const updatedBus = activeFleet.find(b => b.id !== "367581" && b.id !== "368930");
-            if (updatedBus) activeBusId = updatedBus.id;
-            
-            const activeParam = Buffer.from(activeBusId + "&Bus&EN").toString('base64');
-            const cookieRes = await axios.get(`https://app.bongoiot.com/jsp/quickview.jsp?param=${activeParam}`, { httpsAgent: agent, timeout: 8000 });
-            
-            const rawCookies = cookieRes.headers['set-cookie'];
-            if (rawCookies) {
-                sessionCookie = rawCookies.map(c => c.split(';')[0]).join('; ');
+        // Apply dynamic IDs
+        const activeFleet = BUSES.map(bus => {
+            const busMatchString = bus.name.split(':')[0];
+            if (dynamicIDs[busMatchString]) {
+                return { ...bus, id: dynamicIDs[busMatchString].id, name: `${busMatchString}: ${dynamicIDs[busMatchString].route}` };
             }
-        } catch (e) {
-            console.error("Cookie Fetch Failed");
-        }
+            return bus;
+        });
 
-        // --- 3. YOUR EXACT BONGO-IOT API LOGIC ---
+        // 2. Get/Renew Cookie
+        const cookie = await getCookie(activeFleet);
+
+        // 3. Fetch Data Concurrently using YOUR URLSearchParams logic
         const fetchPromises = activeFleet.map(async (bus) => {
-            const postData = `user_id=195425&project_id=37&javaclassmethodname=getVehicleStatus&javaclassname=com.uffizio.tools.projectmanager.GenerateJSONAjax&userDateTimeFormat=dd-MM-yyyy+hh%3Amm%3Ass+a&timezone=-360&lInActiveTolrance=0&link_id=${bus.id}&sImeiNo=${bus.imei}&vehicleType=Bus`;
-            
+            const formData = new URLSearchParams();
+            formData.append('user_id', '195425'); formData.append('project_id', '37');
+            formData.append('javaclassmethodname', 'getVehicleStatus'); formData.append('javaclassname', 'com.uffizio.tools.projectmanager.GenerateJSONAjax');
+            formData.append('userDateTimeFormat', 'dd-MM-yyyy hh:mm:ss a'); formData.append('timezone', '-360');
+            formData.append('lInActiveTolrance', '0'); formData.append('link_id', bus.id);
+            formData.append('sImeiNo', bus.imei); formData.append('vehicleType', 'Bus');
+
             try {
-                const response = await axios.post("https://app.bongoiot.com/GenerateJSON?method=getVehicleStatus", postData, {
+                const response = await axios.post("https://app.bongoiot.com/GenerateJSON?method=getVehicleStatus", formData.toString(), {
                     httpsAgent: agent,
                     timeout: 8000,
-                    headers: { "Cookie": sessionCookie, "Content-Type": "application/x-www-form-urlencoded" }
+                    headers: { 
+                        "Cookie": cookie, 
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" 
+                    }
                 });
 
                 if (typeof response.data === 'string') {
@@ -124,33 +154,33 @@ module.exports = async (req, res) => {
                         }
                         
                         return {
-                            id: bus.id, 
-                            name: bus.name, 
-                            lat: parseFloat(info.latitude) || 0, 
-                            lng: parseFloat(info.longitude) || 0,
-                            speed: parseFloat(info.speed) || 0, 
-                            status: info.sts || "Unknown",
-                            since: info.since || "--", 
-                            updated: info.data_inserted_time,
-                            driver: dName, 
-                            phone: dPhone, 
-                            course: parseInt(info.angle) || 0,
+                            id: bus.id, name: bus.name, 
+                            lat: parseFloat(info.latitude) || 0, lng: parseFloat(info.longitude) || 0,
+                            speed: parseFloat(info.speed) || 0, status: info.sts || "Unknown",
+                            since: info.since || "--", updated: info.data_inserted_time,
+                            driver: dName, phone: dPhone, course: parseInt(info.angle) || 0,
                             address: info.location || "Moving..."
                         };
                     }
                 }
                 return null;
-            } catch (err) {
-                return null;
-            }
+            } catch (err) { return null; }
         });
 
         const results = await Promise.all(fetchPromises);
         const cleanData = results.filter(b => b !== null); 
         
-        return res.status(200).json(cleanData);
+        // Update Cache if data is good, otherwise clear dead cookie
+        if (cleanData.length > 0) {
+            masterFleetCache = cleanData;
+        } else if (masterFleetCache.length === 0) {
+            CACHED_COOKIE = ""; 
+        }
+        
+        // Return whatever is in cache (prevents blank maps if one request times out)
+        return res.status(200).json(masterFleetCache.length > 0 ? masterFleetCache : cleanData);
 
     } catch (globalError) {
-        return res.status(500).json([]);
+        return res.status(500).json(masterFleetCache); // Fallback to cache on hard crash
     }
 };
