@@ -1,6 +1,3 @@
-const https = require('https');
-
-// Bus list with fallback IDs and IMEIs
 const BUSES = [
     { name: "Bus 01: Islampur (Dhamrai)", id: "368930", imei: "863051061903687" },
     { name: "Bus 02: Shiya Moszid", id: "367581", imei: "863051061866041" },
@@ -20,28 +17,10 @@ const BUSES = [
     { name: "BRTC 02: Abdullapur", id: "367611", imei: "863051061865894" }
 ];
 
-// Helper to handle HTTPS requests inside serverless environments
-const agent = new https.Agent({ rejectUnauthorized: false });
-
-function makeRequest(url, options = {}, body = null) {
-    return new Promise((resolve, reject) => {
-        options.agent = agent;
-        const req = https.request(url, options, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => resolve({ headers: res.headers, body: data }));
-        });
-        req.on('error', reject);
-        if (body) req.write(body);
-        req.end();
-    });
-}
-
-// 1. Scrape Live IDs from BUFT Portal
 async function scrapeLiveIDs() {
     try {
-        const response = await makeRequest('https://sms.buft.ac.bd/index.php?ctg=tracking');
-        const html = response.body;
+        const res = await fetch('https://sms.buft.ac.bd/index.php?ctg=tracking');
+        const html = await res.text();
         const rowRegex = /<tr[^>]*>[\s\S]*?<td[^>]*>(.*?)<\/td>\s*<td[^>]*>(.*?)<\/td>[\s\S]*?param=([a-zA-Z0-9=]+)/gi;
         
         let match;
@@ -58,35 +37,30 @@ async function scrapeLiveIDs() {
         }
         return updatedMap;
     } catch (e) {
-        console.error("Scraping failed, reverting to default IDs:", e.message);
         return {};
     }
 }
 
-// 2. Fetch Active Session Cookie from BongoIoT
 async function fetchSessionCookie(targetBusId) {
     try {
         const param = Buffer.from(`${targetBusId}&Bus&EN`).toString('base64');
         const url = `https://app.bongoiot.com/jsp/quickview.jsp?param=${param}`;
-        const response = await makeRequest(url);
+        const response = await fetch(url);
         
-        const setCookie = response.headers['set-cookie'];
-        if (setCookie && setCookie.length > 0) {
-            return setCookie[0].split(';')[0];
+        const setCookie = response.headers.get('set-cookie');
+        if (setCookie) {
+            return setCookie.split(';')[0];
         }
-    } catch (e) {
-        console.error("Cookie generation failed:", e.message);
-    }
+    } catch (e) { }
     return null;
 }
 
-// Main Vercel Serverless Handler
 module.exports = async (req, res) => {
-    // Enable CORS so your GitHub Pages frontend can access this data
+    // CORS configuration
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+    res.setHeader('Access-Control-Allow-Headers', '*');
 
     if (req.method === 'OPTIONS') {
         res.status(200).end();
@@ -94,10 +68,8 @@ module.exports = async (req, res) => {
     }
 
     try {
-        // Step 1: Scrape live web IDs
         const dynamicIDs = await scrapeLiveIDs();
         
-        // Update local configuration with freshly scraped IDs
         const activeFleet = BUSES.map(bus => {
             const busNumberOnly = bus.name.match(/Bus\s*(\d+)/i)?.[1] || bus.name.match(/BRTC\s*(\d+)/i)?.[0];
             if (busNumberOnly && dynamicIDs[busNumberOnly]) {
@@ -106,10 +78,8 @@ module.exports = async (req, res) => {
             return bus;
         });
 
-        // Step 2: Grab working authentication cookie
-        const sessionCookie = await fetchSessionCookie(activeFleet[0].id) || "JSESSIONID=dummy_fallback_cookie";
+        const sessionCookie = await fetchSessionCookie(activeFleet[0].id) || "JSESSIONID=dummy";
 
-        // Step 3: Run parallel requests to fetch real-time fleet details
         const trackingPromises = activeFleet.map(async (bus) => {
             const postBody = new URLSearchParams({
                 user_id: '195425',
@@ -125,33 +95,40 @@ module.exports = async (req, res) => {
             }).toString();
 
             try {
-                const apiResponse = await makeRequest('https://app.bongoiot.com/GenerateJSON?method=getVehicleStatus', {
+                const apiResponse = await fetch('https://app.bongoiot.com/GenerateJSON?method=getVehicleStatus', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                         'Cookie': sessionCookie
-                    }
-                }, postBody);
+                    },
+                    body: postBody
+                });
 
-                const parsed = JSON.parse(apiResponse.body);
+                const parsed = await apiResponse.json();
                 const status = parsed.VehicleStatus?.[0] || {};
 
                 return {
+                    id: bus.id,
                     name: bus.name,
-                    lat: parseFloat(status.latitude) || null,
-                    lng: parseFloat(status.longitude) || null,
+                    lat: parseFloat(status.latitude) || 0,
+                    lng: parseFloat(status.longitude) || 0,
                     speed: parseFloat(status.speed) || 0,
-                    lastUpdate: status.dateTime || "Offline",
-                    status: status.engineStatus || "Unknown"
+                    updated: status.dateTime || "Offline",
+                    status: status.engineStatus || "Unknown",
+                    course: parseFloat(status.course) || 0,
+                    address: status.address || "",
+                    driver: status.driverName || "",
+                    phone: status.driverMobileNo || "",
+                    since: status.since || ""
                 };
             } catch (err) {
-                return { name: bus.name, error: "Failed to connect to tracker backend" };
+                return { id: bus.id, name: bus.name, lat: 0, lng: 0, status: "Unknown", updated: "Error" };
             }
         });
 
         const fleetStatus = await Promise.all(trackingPromises);
         
-        // Return structured dashboard data back to frontend
+        // CRITICAL FIX: Returning exactly as an array, identical to Render
         res.status(200).json(fleetStatus);
 
     } catch (globalError) {
