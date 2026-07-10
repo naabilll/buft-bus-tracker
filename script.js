@@ -77,7 +77,7 @@
             openEmbedModal(busLat, busLng, BUFT_LAT, BUFT_LNG, "🚍 Bus to University");
         }
 
-        const SERVER = "/api";
+        const SERVER = "https://bus-server-lr2x.onrender.com"; 
 
         // UNIQUE USER ID FOR TROLL PREVENTION
         let localUserId = localStorage.getItem('buft_user_id');
