@@ -1,7 +1,7 @@
 const axios = require('axios');
 const https = require('https');
 
-// Your exact original bus list
+// Your exact original fallback bus list
 const BUSES = [
     { name: "Bus 01: Islampur (Dhamrai)", id: "368930", imei: "863051061903687" },
     { name: "Bus 02: Shiya Moszid", id: "367581", imei: "863051061866041" },
@@ -31,6 +31,13 @@ const BUSES = [
     { name: "BRTC 04: Azampur", id: "367612", imei: "863051061998075" }
 ];
 
+function formatRouteName(str) {
+    let titleCased = str.toLowerCase().split(' ').map(word => {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(' ');
+    return titleCased.replace(/\(\s+/g, '(').replace(/\s+\)/g, ')');
+}
+
 const agent = new https.Agent({ rejectUnauthorized: false });
 
 module.exports = async (req, res) => {
@@ -41,17 +48,48 @@ module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Headers', '*');
 
     if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
+        return res.status(200).end();
     }
 
     try {
-        // --- 1. GET COOKIE ---
+        // --- 1. YOUR EXACT AUTO-HEALING SCRAPER ---
+        let activeFleet = JSON.parse(JSON.stringify(BUSES));
+        try {
+            const scrapeRes = await axios.get("https://sms.buft.ac.bd/index.php?ctg=tracking", { httpsAgent: agent, timeout: 10000 });
+            const html = scrapeRes.data;
+            const rowRegex = /<tr[^>]*>[\s\S]*?<td[^>]*>(.*?)<\/td>\s*<td[^>]*>(.*?)<\/td>[\s\S]*?param=([a-zA-Z0-9=]+)/gi;
+            
+            let match;
+            while ((match = rowRegex.exec(html)) !== null) {
+                const rawRoute = match[1].replace(/<[^>]*>?/gm, '').trim(); 
+                const busNum = match[2].replace(/<[^>]*>?/gm, '').trim();
+                const decoded = Buffer.from(match[3].trim(), 'base64').toString('utf-8');
+                const newId = decoded.split('&')[0];
+
+                if (!busNum || !newId) continue;
+
+                const busMatchString = busNum.toUpperCase().startsWith("BRTC") ? busNum : `Bus ${busNum.padStart(2, '0')}`;
+                const targetBus = activeFleet.find(b => b.name.startsWith(busMatchString));
+
+                if (targetBus) {
+                    targetBus.id = newId;
+                    targetBus.name = `${busMatchString}: ${formatRouteName(rawRoute)}`;
+                }
+            }
+        } catch (e) {
+            console.error("Scrape failed, using fallback IDs");
+        }
+
+        // --- 2. YOUR EXACT COOKIE GENERATOR ---
         let sessionCookie = "JSESSIONID=dummy";
         try {
-            const activeBusId = BUSES[0].id; 
+            let activeBusId = activeFleet[0].id;
+            const updatedBus = activeFleet.find(b => b.id !== "367581" && b.id !== "368930");
+            if (updatedBus) activeBusId = updatedBus.id;
+            
             const activeParam = Buffer.from(activeBusId + "&Bus&EN").toString('base64');
-            const cookieRes = await axios.get(`https://app.bongoiot.com/jsp/quickview.jsp?param=${activeParam}`, { httpsAgent: agent });
+            const cookieRes = await axios.get(`https://app.bongoiot.com/jsp/quickview.jsp?param=${activeParam}`, { httpsAgent: agent, timeout: 8000 });
+            
             const rawCookies = cookieRes.headers['set-cookie'];
             if (rawCookies) {
                 sessionCookie = rawCookies.map(c => c.split(';')[0]).join('; ');
@@ -60,13 +98,14 @@ module.exports = async (req, res) => {
             console.error("Cookie Fetch Failed");
         }
 
-        // --- 2. FETCH TRACKING DATA (YOUR EXACT ORIGINAL LOGIC) ---
-        const fetchPromises = BUSES.map(async (bus) => {
+        // --- 3. YOUR EXACT BONGO-IOT API LOGIC ---
+        const fetchPromises = activeFleet.map(async (bus) => {
             const postData = `user_id=195425&project_id=37&javaclassmethodname=getVehicleStatus&javaclassname=com.uffizio.tools.projectmanager.GenerateJSONAjax&userDateTimeFormat=dd-MM-yyyy+hh%3Amm%3Ass+a&timezone=-360&lInActiveTolrance=0&link_id=${bus.id}&sImeiNo=${bus.imei}&vehicleType=Bus`;
             
             try {
                 const response = await axios.post("https://app.bongoiot.com/GenerateJSON?method=getVehicleStatus", postData, {
-                    httpsAgent: agent, 
+                    httpsAgent: agent,
+                    timeout: 8000,
                     headers: { "Cookie": sessionCookie, "Content-Type": "application/x-www-form-urlencoded" }
                 });
 
@@ -109,9 +148,9 @@ module.exports = async (req, res) => {
         const results = await Promise.all(fetchPromises);
         const cleanData = results.filter(b => b !== null); 
         
-        res.status(200).json(cleanData);
+        return res.status(200).json(cleanData);
 
     } catch (globalError) {
-        res.status(500).json([]);
+        return res.status(500).json([]);
     }
 };
