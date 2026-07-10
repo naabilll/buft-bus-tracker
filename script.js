@@ -77,7 +77,7 @@
             openEmbedModal(busLat, busLng, BUFT_LAT, BUFT_LNG, "🚍 Bus to University");
         }
 
-        const SERVER = "https://buft-bus-tracker.vercel.app/api";
+        const SERVER = "/api";
 
         // UNIQUE USER ID FOR TROLL PREVENTION
         let localUserId = localStorage.getItem('buft_user_id');
