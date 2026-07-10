@@ -1,14 +1,9 @@
 {
   "version": 2,
-  "functions": {
-    "api/fleet.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "routes": [
     {
       "src": "/api/fleet",
-      "dest": "api/fleet.js"
+      "dest": "/api/fleet.js"
     },
     {
       "src": "/(.*)",
