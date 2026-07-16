@@ -218,6 +218,21 @@
         </div>
     </div>
 
+    <!-- PWA INSTALL POPUP -->
+    <div id="pwa-install-popup" style="display: none;">
+        <div class="pwa-popup-content">
+            <div class="pwa-popup-icon">📲</div>
+            <div class="pwa-popup-text">
+                <div class="pwa-popup-title">Install App</div>
+                <div class="pwa-popup-desc">Add BUFT Tracker to your home screen for faster access and a better experience!</div>
+            </div>
+            <div class="pwa-popup-actions">
+                <button class="pwa-btn-install" id="pwa-btn-install">Install</button>
+                <button class="pwa-btn-dismiss" id="pwa-btn-dismiss" onclick="document.getElementById('pwa-install-popup').style.display='none'">Not Now</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

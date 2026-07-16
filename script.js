@@ -667,25 +667,64 @@
 
         // --- PWA INSTALL APP LOGIC ---
         let deferredPrompt;
-        const installBtn = document.getElementById('install-app-btn');
+        const installBtnSidebar = document.getElementById('install-app-btn');
+        const installPopup = document.getElementById('pwa-install-popup');
+        const pwaInstallBtn = document.getElementById('pwa-btn-install');
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            installBtn.style.display = 'block'; 
-        });
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt !== null) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('User accepted the install prompt');
-                    installBtn.style.display = 'none'; 
-                }
-                deferredPrompt = null;
+            if (installBtnSidebar) installBtnSidebar.style.display = 'block'; 
+            
+            // Show the popup if it hasn't been dismissed recently, delayed by 10 seconds
+            if (!sessionStorage.getItem('pwaPromptDismissed')) {
+                setTimeout(() => {
+                    // Double check they haven't installed it or dismissed it in the last 10 seconds
+                    if (deferredPrompt !== null && !sessionStorage.getItem('pwaPromptDismissed')) {
+                        installPopup.style.display = 'block';
+                    }
+                }, 10000);
             }
         });
+
+        // Sidebar button logic
+        if (installBtnSidebar) {
+            installBtnSidebar.addEventListener('click', async () => {
+                if (deferredPrompt !== null) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installBtnSidebar.style.display = 'none'; 
+                        installPopup.style.display = 'none';
+                    }
+                    deferredPrompt = null;
+                }
+            });
+        }
+
+        // Popup button logic
+        if (pwaInstallBtn) {
+            pwaInstallBtn.addEventListener('click', async () => {
+                if (deferredPrompt !== null) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installPopup.style.display = 'none';
+                        if (installBtnSidebar) installBtnSidebar.style.display = 'none';
+                    }
+                    deferredPrompt = null;
+                }
+            });
+        }
+
+        // Handle popup dismissal
+        const pwaDismissBtn = document.getElementById('pwa-btn-dismiss');
+        if (pwaDismissBtn) {
+            pwaDismissBtn.addEventListener('click', () => {
+                installPopup.style.display = 'none';
+                sessionStorage.setItem('pwaPromptDismissed', 'true');
+            });
+        }
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
