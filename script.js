@@ -443,17 +443,6 @@
                 }
 
                 fleet.forEach(bus => {
-                    // GLITCH OVERRIDE FIX FOR BRTC SWAPPED TO LOCAL BUSES
-                    let bongoLink = bus.id;
-                    if (bus.id === "377834" && bus.name.includes("BRTC 03")) {
-                        bus.name = "B3 (Local): DM BA 12-3577";
-                        if (bus.lat > 0) { bus.lat += 0.0002; bus.lng += 0.0002; } // Prevent overlap with BRTC 04
-                        bus.id = "377834_B3"; // Unique ID for DOM
-                    }
-                    if (bus.id === "377832" && bus.name.includes("BRTC 01")) {
-                        bus.name = "B1 (Local): DM BA 11-4822";
-                    }
-
                     let busColor = '#94a3b8'; 
                     let badgeBg = '#f1f5f9';
                     let dotColor = '#ccc';
@@ -579,7 +568,7 @@
                                     <div style="font-size:9px; color:#94a3b8; text-align:right; margin-bottom:10px;">Updated: ${fixTime(bus.updated)}</div>
                                     
                                     <div style="display:flex; flex-direction:column; gap:6px;">
-                                        <a href="https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bongoLink + "&Bus&EN")}" target="_blank" style="display:block; text-align:center; background:#e2e8f0; color:#0f172a; padding:6px; border-radius:8px; text-decoration:none; font-weight:700; font-size:11px;">🔗 Open Full Live Tracker</a>
+                                        <a href="https://app.bongoiot.com/jsp/quickview.jsp?param=${btoa(bus.id + "&Bus&EN")}" target="_blank" style="display:block; text-align:center; background:#e2e8f0; color:#0f172a; padding:6px; border-radius:8px; text-decoration:none; font-weight:700; font-size:11px;">🔗 Open Full Live Tracker</a>
                                         ${routingButtonsHtml}
                                         ${reportButtonsHtml}
                                     </div>
