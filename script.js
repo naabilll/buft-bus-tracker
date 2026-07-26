@@ -809,7 +809,10 @@
                             <div style="font-size:14px; font-weight:800; color:#1e293b; margin-bottom:8px;">${item.item}</div>
                             <div style="font-size:12px; font-weight:600; color:#475569;">Contact: <a href="${item.contact.startsWith('http') ? item.contact : 'tel:' + item.contact}" target="_blank" style="color:#2563eb; text-decoration:underline;">${item.contact}</a></div>
                             ${imgHtml}
-                            <button onclick="openResolvePrompt('${item.id}')" style="margin-top: 12px; width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; color: #475569; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s;">✔️ Mark as Resolved</button>
+                            ${item.status === "PendingResolution" 
+                                ? `<div style="margin-top: 12px; width: 100%; padding: 8px; border-radius: 8px; background: #fef3c7; color: #d97706; font-weight: 700; font-size: 12px; text-align:center;">⏳ Verification Pending</div>`
+                                : `<button onclick="openResolvePrompt('${item.id}')" style="margin-top: 12px; width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; color: #475569; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s;">✔️ Mark as Resolved</button>`
+                            }
                             <div style="font-size:10px; font-weight:700; color:#94a3b8; position:absolute; top:12px; right:12px;">${item.date}</div>
                         </div>
                     `;
