@@ -46,6 +46,12 @@
         <span class="new-badge">NEW</span>
     </a>
 
+    <!-- FLOATING LOST & FOUND BUTTON -->
+    <button onclick="openLostFoundModal()" id="lf-main-btn" title="Lost & Found" style="position: absolute; top: 135px; left: 15px; z-index: 1001; background: linear-gradient(135deg, #ffffff, #fce7f3); border: 1px solid #fbcfe8; border-radius: 15px; padding: 10px 15px; box-shadow: 0 8px 25px rgba(236, 72, 153, 0.25); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s;">
+        <span style="font-size: 18px;">🔍</span>
+        <span id="lf-main-text" style="font-family: 'Outfit'; font-size: 14px; font-weight: 800; color: #be185d;">Lost & Found</span>
+    </button>
+
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h2>🚍 Bus List</h2>
@@ -229,6 +235,53 @@
             <div class="pwa-popup-actions">
                 <button class="pwa-btn-install" id="pwa-btn-install">Install</button>
                 <button class="pwa-btn-dismiss" id="pwa-btn-dismiss" onclick="document.getElementById('pwa-install-popup').style.display='none'">Not Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOST AND FOUND MODAL -->
+    <div id="lost-found-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="embed-modal" style="max-height: 85vh; overflow-y: auto; background: white; width: 90%; max-width: 400px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <div class="embed-modal-header" style="background: linear-gradient(90deg, #ec4899, #be185d); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 16px 16px 0 0;">
+                <div class="embed-modal-title" style="color: white; font-family: 'Outfit'; font-weight: 800; font-size: 18px;">🔍 Lost & Found</div>
+                <button class="embed-close-btn" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;" onclick="closeLostFoundModal()">✖</button>
+            </div>
+            <div style="padding: 20px; font-family: 'Outfit';">
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button id="tab-list" onclick="switchLFTab('list')" style="flex:1; padding: 12px; border-radius: 10px; border: none; background: #be185d; color: white; font-weight: 800; font-family: 'Outfit'; cursor: pointer; transition: 0.2s;">Active Cases</button>
+                    <button id="tab-report" onclick="switchLFTab('report')" style="flex:1; padding: 12px; border-radius: 10px; border: 1px solid #be185d; background: transparent; color: #be185d; font-weight: 800; font-family: 'Outfit'; cursor: pointer; transition: 0.2s;">Report Item</button>
+                </div>
+                
+                <div id="lf-list-view">
+                    <div id="lf-items-container" style="display:flex; flex-direction: column; gap: 12px;">
+                        <div style="text-align:center; color:#94a3b8; padding: 20px; font-weight:600;">Loading cases...</div>
+                    </div>
+                </div>
+
+                <div id="lf-report-view" style="display: none;">
+                    <div style="margin-bottom: 12px;">
+                        <label style="font-size:13px; font-weight:800; color:#475569;">Report Type</label>
+                        <select id="lf-type" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-family: 'Outfit'; margin-top:6px; font-size:14px;">
+                            <option value="Lost">I lost an item</option>
+                            <option value="Found">I found an item</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="font-size:13px; font-weight:800; color:#475569;">Item Description</label>
+                        <textarea id="lf-item" placeholder="E.g. Blue Umbrella in Bus 01" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-family: 'Outfit'; margin-top:6px; height: 80px; font-size:14px; resize: none;"></textarea>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="font-size:13px; font-weight:800; color:#475569;">Contact Info</label>
+                        <input id="lf-contact" type="text" placeholder="Phone, FB link, or Telegram" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-family: 'Outfit'; margin-top:6px; font-size:14px;">
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="font-size:13px; font-weight:800; color:#475569;">Attach Photo (Optional)</label>
+                        <input id="lf-image" type="file" accept="image/*" style="width: 100%; padding: 8px; border-radius: 10px; border: 1px dashed #cbd5e1; font-family: 'Outfit'; margin-top:6px; font-size:12px; background: #f8fafc;">
+                        <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">Photo is securely uploaded for free via ImgBB.</div>
+                    </div>
+                    <button onclick="submitLostFound()" style="width: 100%; padding: 14px; border-radius: 10px; border: none; background: #10b981; color: white; font-weight: 900; font-size:15px; cursor: pointer; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);">Submit Report</button>
+                    <div id="lf-msg" style="margin-top: 15px; font-size: 13px; text-align:center; font-weight:800; color:#059669;"></div>
+                </div>
             </div>
         </div>
     </div>

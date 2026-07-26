@@ -676,6 +676,9 @@
             deferredPrompt = e;
             if (installBtnSidebar) installBtnSidebar.style.display = 'block'; 
             
+            fetchFleetData();
+            fetchLostFoundItems(); // Initial fetch to load badge counts
+
             // Show the popup if it hasn't been dismissed recently, delayed by 10 seconds
             if (!sessionStorage.getItem('pwaPromptDismissed')) {
                 setTimeout(() => {
@@ -730,4 +733,131 @@
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Registration failed: ', err));
             });
+        }
+
+        // --- LOST & FOUND LOGIC ---
+        function openLostFoundModal() {
+            document.getElementById('lost-found-modal-overlay').style.display = 'flex';
+            toggleSidebar(); // Close sidebar if open
+            switchLFTab('list');
+            fetchLostFoundItems();
+        }
+        function closeLostFoundModal() {
+            document.getElementById('lost-found-modal-overlay').style.display = 'none';
+        }
+        function switchLFTab(tab) {
+            const listBtn = document.getElementById('tab-list');
+            const reportBtn = document.getElementById('tab-report');
+            const listView = document.getElementById('lf-list-view');
+            const reportView = document.getElementById('lf-report-view');
+            const msg = document.getElementById('lf-msg');
+            msg.innerText = "";
+            
+            if (tab === 'list') {
+                listBtn.style.background = '#be185d'; listBtn.style.color = 'white'; listBtn.style.border = 'none';
+                reportBtn.style.background = 'transparent'; reportBtn.style.color = '#be185d'; reportBtn.style.border = '1px solid #be185d';
+                listView.style.display = 'block'; reportView.style.display = 'none';
+                fetchLostFoundItems();
+            } else {
+                reportBtn.style.background = '#be185d'; reportBtn.style.color = 'white'; reportBtn.style.border = 'none';
+                listBtn.style.background = 'transparent'; listBtn.style.color = '#be185d'; listBtn.style.border = '1px solid #be185d';
+                listView.style.display = 'none'; reportView.style.display = 'block';
+            }
+        }
+        async function fetchLostFoundItems() {
+            const container = document.getElementById('lf-items-container');
+            container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding: 20px; font-weight:600;">Loading...</div>';
+            try {
+                const res = await fetch(SERVER + "/api/lost-found");
+                const data = await res.json();
+                
+                // Update Main Button Text
+                const mainBtnText = document.getElementById('lf-main-text');
+                if (mainBtnText) {
+                    if (data.length > 0) {
+                        let lostCount = data.filter(i => i.type === 'Lost').length;
+                        let foundCount = data.filter(i => i.type === 'Found').length;
+                        if (lostCount > 0 && foundCount > 0) mainBtnText.innerText = `${lostCount} Lost, ${foundCount} Found`;
+                        else if (lostCount > 0) mainBtnText.innerText = `${lostCount} Lost Item${lostCount > 1 ? 's' : ''}`;
+                        else if (foundCount > 0) mainBtnText.innerText = `${foundCount} Found Item${foundCount > 1 ? 's' : ''}`;
+                    } else {
+                        mainBtnText.innerText = "Lost & Found";
+                    }
+                }
+
+                if (data.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding: 20px; font-weight:600;">No active cases at the moment!</div>';
+                    return;
+                }
+                container.innerHTML = "";
+                data.forEach(item => {
+                    let color = item.type === 'Lost' ? '#ef4444' : '#10b981';
+                    let bg = item.type === 'Lost' ? '#fef2f2' : '#ecfdf5';
+                    let border = item.type === 'Lost' ? '#fca5a5' : '#6ee7b7';
+                    let imgHtml = item.image ? `<img src="${item.image}" style="width:100%; border-radius:8px; margin-top:8px; max-height:150px; object-fit:cover;">` : '';
+                    container.innerHTML += `
+                        <div style="background: ${bg}; border: 1px solid ${border}; border-radius: 10px; padding: 12px; position:relative;">
+                            <div style="font-size:11px; font-weight:900; color:${color}; margin-bottom:5px; text-transform:uppercase;">${item.type}</div>
+                            <div style="font-size:14px; font-weight:800; color:#1e293b; margin-bottom:8px;">${item.item}</div>
+                            <div style="font-size:12px; font-weight:600; color:#475569;">Contact: <a href="${item.contact.startsWith('http') ? item.contact : 'tel:' + item.contact}" target="_blank" style="color:#2563eb; text-decoration:underline;">${item.contact}</a></div>
+                            ${imgHtml}
+                            <div style="font-size:10px; font-weight:700; color:#94a3b8; position:absolute; top:12px; right:12px;">${item.date}</div>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                container.innerHTML = '<div style="text-align:center; color:#ef4444; padding: 20px; font-weight:600;">Failed to load.</div>';
+            }
+        }
+        
+        async function uploadToImgBB(file) {
+            const formData = new FormData();
+            formData.append("image", file);
+            // Replace this with your actual ImgBB Client API key
+            const apiKey = "3c6e7d32ff159267fd906e66a135e942"; 
+            try {
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: "POST", body: formData });
+                const data = await res.json();
+                if (data.success) return data.data.url;
+            } catch (e) { console.error("ImgBB Upload Failed", e); }
+            return null;
+        }
+
+        async function submitLostFound() {
+            const type = document.getElementById('lf-type').value;
+            const item = document.getElementById('lf-item').value.trim();
+            const contact = document.getElementById('lf-contact').value.trim();
+            const imageInput = document.getElementById('lf-image');
+            const msg = document.getElementById('lf-msg');
+            
+            if (!item || !contact) {
+                msg.style.color = '#ef4444'; msg.innerText = "Please fill all fields!"; return;
+            }
+            msg.style.color = '#f59e0b'; msg.innerText = "Submitting...";
+
+            let imageUrl = null;
+            if (imageInput.files.length > 0) {
+                msg.innerText = "Uploading photo (ImgBB)...";
+                imageUrl = await uploadToImgBB(imageInput.files[0]);
+                if (!imageUrl) {
+                    msg.style.color = '#ef4444'; msg.innerText = "Photo upload failed. Check API key."; return;
+                }
+            }
+            
+            try {
+                const res = await fetch(SERVER + "/api/lost-found", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ type, item, contact, image: imageUrl })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    msg.style.color = '#10b981'; msg.innerText = "Submitted! Awaiting admin approval.";
+                    document.getElementById('lf-item').value = ""; document.getElementById('lf-contact').value = "";
+                    if (imageInput) imageInput.value = "";
+                } else {
+                    msg.style.color = '#ef4444'; msg.innerText = data.message || "Failed to submit.";
+                }
+            } catch(e) {
+                msg.style.color = '#ef4444'; msg.innerText = "Network error. Try again.";
+            }
         }
