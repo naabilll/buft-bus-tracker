@@ -776,7 +776,7 @@
             const container = document.getElementById('lf-items-container');
             container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding: 20px; font-weight:600;">Loading...</div>';
             try {
-                const res = await fetch(SERVER + "/api/lost-found");
+                const res = await fetch(SERVER + "/api/lost-found", { cache: 'no-store' });
                 const data = await res.json();
                 
                 // Update Main Button Text
@@ -802,7 +802,7 @@
                     let color = item.type === 'Lost' ? '#ef4444' : '#10b981';
                     let bg = item.type === 'Lost' ? '#fef2f2' : '#ecfdf5';
                     let border = item.type === 'Lost' ? '#fca5a5' : '#6ee7b7';
-                    let imgHtml = item.image ? `<img src="${item.image}" style="width:100%; border-radius:8px; margin-top:8px; max-height:150px; object-fit:cover;">` : '';
+                    let imgHtml = item.image ? `<img src="${item.image}" onclick="window.open('${item.image}', '_blank')" title="Click to view full image" style="width:100%; border-radius:8px; margin-top:8px; max-height:150px; object-fit:cover; cursor:pointer; border: 1px solid #cbd5e1;">` : '';
                     container.innerHTML += `
                         <div style="background: ${bg}; border: 1px solid ${border}; border-radius: 10px; padding: 12px; position:relative;">
                             <div style="font-size:11px; font-weight:900; color:${color}; margin-bottom:5px; text-transform:uppercase;">${item.type}</div>
