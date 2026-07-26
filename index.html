@@ -47,7 +47,7 @@
     </a>
 
     <!-- FLOATING LOST & FOUND BUTTON -->
-    <button onclick="openLostFoundModal()" id="lf-main-btn" title="Lost & Found" style="position: absolute; top: 135px; left: 15px; z-index: 1001; background: linear-gradient(135deg, #ffffff, #fce7f3); border: 1px solid #fbcfe8; border-radius: 15px; padding: 10px 15px; box-shadow: 0 8px 25px rgba(236, 72, 153, 0.25); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s;">
+    <button onclick="openLostFoundModal()" id="lf-main-btn" title="Lost & Found" style="position: absolute; top: 75px; left: 15px; z-index: 1001; background: linear-gradient(135deg, #ffffff, #fce7f3); border: 1px solid #fbcfe8; border-radius: 15px; padding: 10px 15px; box-shadow: 0 8px 25px rgba(236, 72, 153, 0.25); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s;">
         <span style="font-size: 18px;">🔍</span>
         <span id="lf-main-text" style="font-family: 'Outfit'; font-size: 14px; font-weight: 800; color: #be185d;">Lost & Found</span>
     </button>
@@ -247,9 +247,13 @@
                 <button class="embed-close-btn" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;" onclick="closeLostFoundModal()">✖</button>
             </div>
             <div style="padding: 20px; font-family: 'Outfit';">
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                     <button id="tab-list" onclick="switchLFTab('list')" style="flex:1; padding: 12px; border-radius: 10px; border: none; background: #be185d; color: white; font-weight: 800; font-family: 'Outfit'; cursor: pointer; transition: 0.2s;">Active Cases</button>
                     <button id="tab-report" onclick="switchLFTab('report')" style="flex:1; padding: 12px; border-radius: 10px; border: 1px solid #be185d; background: transparent; color: #be185d; font-weight: 800; font-family: 'Outfit'; cursor: pointer; transition: 0.2s;">Report Item</button>
+                </div>
+                
+                <div style="text-align: center; font-size: 10px; color: #64748b; font-weight: 700; margin-bottom: 15px;">
+                    ⚠️ Note: All posts are automatically cleared after 7 days.
                 </div>
                 
                 <div id="lf-list-view">
@@ -281,6 +285,22 @@
                     </div>
                     <button onclick="submitLostFound()" style="width: 100%; padding: 14px; border-radius: 10px; border: none; background: #10b981; color: white; font-weight: 900; font-size:15px; cursor: pointer; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);">Submit Report</button>
                     <div id="lf-msg" style="margin-top: 15px; font-size: 13px; text-align:center; font-weight:800; color:#059669;"></div>
+                </div>
+
+                <div id="lf-resolve-view" style="display: none;">
+                    <div style="font-weight: 800; font-size: 15px; color: #0f172a; margin-bottom: 12px; text-align: center;">Mark as Resolved</div>
+                    <input type="hidden" id="lf-resolve-id">
+                    <div style="margin-bottom: 12px;">
+                        <label style="font-size:13px; font-weight:800; color:#475569;">Proof / Claim</label>
+                        <textarea id="lf-resolve-text" placeholder="E.g. I handed it over to him." style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-family: 'Outfit'; margin-top:6px; height: 60px; font-size:14px; resize: none;"></textarea>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="font-size:13px; font-weight:800; color:#475569;">Attach Proof Photo (Optional)</label>
+                        <input id="lf-resolve-image" type="file" accept="image/*" style="width: 100%; padding: 8px; border-radius: 10px; border: 1px dashed #cbd5e1; font-family: 'Outfit'; margin-top:6px; font-size:12px; background: #f8fafc;">
+                    </div>
+                    <button onclick="submitResolution()" style="width: 100%; padding: 14px; border-radius: 10px; border: none; background: #2563eb; color: white; font-weight: 900; font-size:15px; cursor: pointer; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);">Submit for Verification</button>
+                    <button onclick="switchLFTab('list')" style="width: 100%; padding: 10px; border-radius: 10px; border: none; background: transparent; color: #64748b; font-weight: 700; font-size:13px; cursor: pointer; margin-top: 5px;">Cancel</button>
+                    <div id="lf-resolve-msg" style="margin-top: 15px; font-size: 13px; text-align:center; font-weight:800; color:#2563eb;"></div>
                 </div>
             </div>
         </div>

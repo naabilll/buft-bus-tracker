@@ -77,7 +77,7 @@
             openEmbedModal(busLat, busLng, BUFT_LAT, BUFT_LNG, "🚍 Bus to University");
         }
 
-        const SERVER = "https://bus-server-lr2x.onrender.com"; 
+        const SERVER = "https://bus-server-exgchxhggvhchagd.centralindia-01.azurewebsites.net"; 
 
         // UNIQUE USER ID FOR TROLL PREVENTION
         let localUserId = localStorage.getItem('buft_user_id');
@@ -738,7 +738,6 @@
         // --- LOST & FOUND LOGIC ---
         function openLostFoundModal() {
             document.getElementById('lost-found-modal-overlay').style.display = 'flex';
-            toggleSidebar(); // Close sidebar if open
             switchLFTab('list');
             fetchLostFoundItems();
         }
@@ -750,19 +749,28 @@
             const reportBtn = document.getElementById('tab-report');
             const listView = document.getElementById('lf-list-view');
             const reportView = document.getElementById('lf-report-view');
+            const resolveView = document.getElementById('lf-resolve-view');
             const msg = document.getElementById('lf-msg');
-            msg.innerText = "";
+            if (msg) msg.innerText = "";
+            if (resolveView) resolveView.style.display = 'none';
             
             if (tab === 'list') {
                 listBtn.style.background = '#be185d'; listBtn.style.color = 'white'; listBtn.style.border = 'none';
                 reportBtn.style.background = 'transparent'; reportBtn.style.color = '#be185d'; reportBtn.style.border = '1px solid #be185d';
                 listView.style.display = 'block'; reportView.style.display = 'none';
                 fetchLostFoundItems();
-            } else {
+            } else if (tab === 'report') {
                 reportBtn.style.background = '#be185d'; reportBtn.style.color = 'white'; reportBtn.style.border = 'none';
                 listBtn.style.background = 'transparent'; listBtn.style.color = '#be185d'; listBtn.style.border = '1px solid #be185d';
                 listView.style.display = 'none'; reportView.style.display = 'block';
             }
+        }
+        function openResolvePrompt(id) {
+            document.getElementById('lf-list-view').style.display = 'none';
+            document.getElementById('lf-report-view').style.display = 'none';
+            document.getElementById('lf-resolve-view').style.display = 'block';
+            document.getElementById('lf-resolve-id').value = id;
+            document.getElementById('lf-resolve-msg').innerText = "";
         }
         async function fetchLostFoundItems() {
             const container = document.getElementById('lf-items-container');
@@ -801,6 +809,7 @@
                             <div style="font-size:14px; font-weight:800; color:#1e293b; margin-bottom:8px;">${item.item}</div>
                             <div style="font-size:12px; font-weight:600; color:#475569;">Contact: <a href="${item.contact.startsWith('http') ? item.contact : 'tel:' + item.contact}" target="_blank" style="color:#2563eb; text-decoration:underline;">${item.contact}</a></div>
                             ${imgHtml}
+                            <button onclick="openResolvePrompt('${item.id}')" style="margin-top: 12px; width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; color: #475569; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s;">✔️ Mark as Resolved</button>
                             <div style="font-size:10px; font-weight:700; color:#94a3b8; position:absolute; top:12px; right:12px;">${item.date}</div>
                         </div>
                     `;
@@ -854,6 +863,45 @@
                     msg.style.color = '#10b981'; msg.innerText = "Submitted! Awaiting admin approval.";
                     document.getElementById('lf-item').value = ""; document.getElementById('lf-contact').value = "";
                     if (imageInput) imageInput.value = "";
+                } else {
+                    msg.style.color = '#ef4444'; msg.innerText = data.message || "Failed to submit.";
+                }
+            } catch(e) {
+                msg.style.color = '#ef4444'; msg.innerText = "Network error. Try again.";
+            }
+        }
+
+        async function submitResolution() {
+            const id = document.getElementById('lf-resolve-id').value;
+            const proofText = document.getElementById('lf-resolve-text').value.trim();
+            const imageInput = document.getElementById('lf-resolve-image');
+            const msg = document.getElementById('lf-resolve-msg');
+
+            if (!proofText) {
+                msg.style.color = '#ef4444'; msg.innerText = "Please provide proof details!"; return;
+            }
+            msg.style.color = '#f59e0b'; msg.innerText = "Submitting resolution...";
+
+            let imageUrl = null;
+            if (imageInput.files.length > 0) {
+                msg.innerText = "Uploading photo (ImgBB)...";
+                imageUrl = await uploadToImgBB(imageInput.files[0]);
+                if (!imageUrl) {
+                    msg.style.color = '#ef4444'; msg.innerText = "Photo upload failed. Check API key."; return;
+                }
+            }
+
+            try {
+                const res = await fetch(SERVER + "/api/lost-found/resolve", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id, proofText, proofImage: imageUrl })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    msg.style.color = '#10b981'; msg.innerText = "Resolution sent to admin for verification!";
+                    document.getElementById('lf-resolve-text').value = "";
+                    if (imageInput) imageInput.value = "";
+                    setTimeout(() => switchLFTab('list'), 2000);
                 } else {
                     msg.style.color = '#ef4444'; msg.innerText = data.message || "Failed to submit.";
                 }
