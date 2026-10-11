@@ -440,3 +440,15 @@ body.dark-mode .pwa-popup-title { color: #f8fafc; }
 body.dark-mode .pwa-popup-desc { color: #cbd5e1; }
 body.dark-mode .pwa-btn-dismiss { background: #1e293b; color: #94a3b8; border-color: #475569; }
 body.dark-mode .pwa-btn-dismiss:active { background: #334155; }
+
+/* --- LOST & FOUND ACTIVE GLOW ANIMATION --- */
+@keyframes activePulse {
+    0% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
+    70% { box-shadow: 0 0 0 12px rgba(236, 72, 153, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+}
+.lf-active-glow {
+    animation: activePulse 2s infinite !important;
+    background: linear-gradient(135deg, #fdf2f8, #fce7f3) !important;
+    border-color: #f472b6 !important;
+}
