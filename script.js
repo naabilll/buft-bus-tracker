@@ -772,26 +772,29 @@
             document.getElementById('lf-resolve-id').value = id;
             document.getElementById('lf-resolve-msg').innerText = "";
         }
-        async function fetchLostFoundItems() {
+        async function fetchLostFoundItems(silent = false) {
             const container = document.getElementById('lf-items-container');
-            container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding: 20px; font-weight:600;">Loading...</div>';
+            if (!silent && container) {
+                container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding: 20px; font-weight:600;">Loading...</div>';
+            }
             try {
                 const res = await fetch(SERVER + "/api/lost-found", { cache: 'no-store' });
                 const data = await res.json();
                 
-                // Update Main Button Text
+                // Update Main Button Text & Glow
+                const mainBtn = document.getElementById('lf-main-btn');
                 const mainBtnText = document.getElementById('lf-main-text');
                 if (mainBtnText) {
                     if (data.length > 0) {
-                        let lostCount = data.filter(i => i.type === 'Lost').length;
-                        let foundCount = data.filter(i => i.type === 'Found').length;
-                        if (lostCount > 0 && foundCount > 0) mainBtnText.innerText = `${lostCount} Lost, ${foundCount} Found`;
-                        else if (lostCount > 0) mainBtnText.innerText = `${lostCount} Lost Item${lostCount > 1 ? 's' : ''}`;
-                        else if (foundCount > 0) mainBtnText.innerText = `${foundCount} Found Item${foundCount > 1 ? 's' : ''}`;
+                        mainBtnText.innerText = `${data.length} Active Case${data.length > 1 ? 's' : ''}`;
+                        if (mainBtn) mainBtn.classList.add('lf-active-glow');
                     } else {
                         mainBtnText.innerText = "Lost & Found";
+                        if (mainBtn) mainBtn.classList.remove('lf-active-glow');
                     }
                 }
+
+                if (silent || !container) return;
 
                 if (data.length === 0) {
                     container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding: 20px; font-weight:600;">No active cases at the moment!</div>';
@@ -912,3 +915,44 @@
                 msg.style.color = '#ef4444'; msg.innerText = "Network error. Try again.";
             }
         }
+
+        // --- NOTICES SYSTEM LOGIC ---
+        function openNoticesModal() {
+            document.getElementById('notices-modal-overlay').style.display = 'flex';
+            fetchNotices();
+        }
+
+        function closeNoticesModal() {
+            document.getElementById('notices-modal-overlay').style.display = 'none';
+        }
+
+        async function fetchNotices() {
+            const container = document.getElementById('notices-container');
+            if (!container) return;
+            container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding: 20px; font-weight:600;">Loading notices...</div>';
+            try {
+                const res = await fetch(SERVER + "/api/notices", { cache: 'no-store' });
+                const data = await res.json();
+                if (!Array.isArray(data) || data.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding: 20px; font-weight:600;">No active notices at the moment.</div>';
+                    return;
+                }
+                container.innerHTML = "";
+                data.forEach(item => {
+                    let imgHtml = item.image ? `<img src="${item.image}" onclick="window.open('${item.image}', '_blank')" title="Click to view full image" style="width:100%; border-radius:10px; margin-top:10px; cursor:pointer; border: 1px solid #cbd5e1; max-height:220px; object-fit:cover;">` : '';
+                    container.innerHTML += `
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+                            <div style="font-size:11px; font-weight:800; color:#2563eb; margin-bottom:6px;">📅 ${item.date}</div>
+                            <div style="font-size:14px; font-weight:600; color:#1e293b; white-space:pre-wrap; line-height: 1.5;">${item.text}</div>
+                            ${imgHtml}
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                container.innerHTML = '<div style="text-align:center; color:#ef4444; padding: 20px; font-weight:600;">Failed to load notices.</div>';
+            }
+        }
+
+        // Check active cases immediately on page boot to light up glowing counter
+        fetchLostFoundItems(true);
+
