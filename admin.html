@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUFT Admin Notice Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 16px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 900;
+            color: #1e40af;
+        }
+        .input-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            font-weight: 800;
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input[type="password"],
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus, textarea:focus {
+            border-color: #2563eb;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 13px;
+            background: #f8fafc;
+        }
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+            transition: all 0.2s;
+        }
+        .submit-btn:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+        .submit-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        #status-msg {
+            margin: 12px 0 0;
+            font-size: 13px;
+            font-weight: 800;
+            text-align: center;
+        }
+        .section-title {
+            font-weight: 900;
+            font-size: 17px;
+            color: #1e293b;
+            margin: 32px 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .notice-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .notice-content {
+            flex: 1;
+        }
+        .notice-date {
+            font-size: 11px;
+            font-weight: 800;
+            color: #2563eb;
+            margin-bottom: 6px;
+        }
+        .notice-text {
+            font-size: 14px;
+            color: #1e293b;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            font-weight: 600;
+        }
+        .notice-thumb {
+            margin-top: 10px;
+            max-width: 120px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            display: block;
+        }
+        .delete-btn {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .delete-btn:hover {
+            background: #dc2626;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span style="font-size: 28px;">📢</span>
+            <h1>BUFT Notice Administration</h1>
+        </div>
+
+        <div class="input-group">
+            <label for="admin-pass">Admin Password</label>
+            <input type="password" id="admin-pass" placeholder="Enter admin password">
+        </div>
+
+        <div class="input-group">
+            <label for="notice-text">Notice Description / Text</label>
+            <textarea id="notice-text" rows="4" placeholder="Write the official notice here..."></textarea>
+        </div>
+
+        <div class="input-group">
+            <label for="notice-image">Attach Notice Photo (Optional)</label>
+            <input type="file" id="notice-image" accept="image/*">
+        </div>
+
+        <button class="submit-btn" id="post-btn" onclick="publishNotice()">Publish Notice to Website</button>
+        <div id="status-msg"></div>
+
+        <div class="section-title">
+            <span>Active Notices</span>
+            <button onclick="loadNotices()" style="background: none; border: none; color: #2563eb; font-weight: 800; font-size: 13px; cursor: pointer;">🔄 Refresh</button>
+        </div>
+
+        <div id="notices-list">Loading notices...</div>
+    </div>
+
+    <script>
+        const SERVER = "https://bus-server-exgchxhggvhchagd.centralindia-01.azurewebsites.net";
+        const IMGBB_KEY = "3c6e7d32ff159267fd906e66a135e942";
+
+        async function uploadImageToImgBB(file) {
+            const formData = new FormData();
+            formData.append("image", file);
+            try {
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+                const data = await res.json();
+                if (data.success) return data.data.url;
+            } catch (e) {
+                console.error("ImgBB Upload Failed", e);
+            }
+            return null;
+        }
+
+        async function loadNotices() {
+            const listEl = document.getElementById("notices-list");
+            listEl.innerHTML = '<div style="color: #64748b; font-size: 13px;">Fetching notices...</div>';
+            try {
+                const res = await fetch(SERVER + "/api/notices", { cache: "no-store" });
+                const notices = await res.json();
+                if (!Array.isArray(notices) || notices.length === 0) {
+                    listEl.innerHTML = '<div style="color: #64748b; font-size: 13px;">No active notices found.</div>';
+                    return;
+                }
+                listEl.innerHTML = "";
+                notices.forEach(item => {
+                    let imgTag = item.image ? `<img src="${item.image}" class="notice-thumb" onclick="window.open('${item.image}', '_blank')">` : '';
+                    listEl.innerHTML += `
+                        <div class="notice-card">
+                            <div class="notice-content">
+                                <div class="notice-date">📅 ${item.date}</div>
+                                <div class="notice-text">${item.text}</div>
+                                ${imgTag}
+                            </div>
+                            <button class="delete-btn" onclick="deleteNotice('${item.id}')">Delete ✕</button>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                listEl.innerHTML = '<div style="color: #ef4444; font-size: 13px;">Failed to connect to backend server.</div>';
+            }
+        }
+
+        async function publishNotice() {
+            const pass = document.getElementById("admin-pass").value.trim();
+            const text = document.getElementById("notice-text").value.trim();
+            const fileInput = document.getElementById("notice-image");
+            const btn = document.getElementById("post-btn");
+            const status = document.getElementById("status-msg");
+
+            if (!pass) {
+                status.style.color = "#ef4444";
+                status.innerText = "Please enter the admin password.";
+                return;
+            }
+            if (!text) {
+                status.style.color = "#ef4444";
+                status.innerText = "Notice text cannot be empty.";
+                return;
+            }
+
+            btn.disabled = true;
+            status.style.color = "#d97706";
+            status.innerText = "Publishing notice...";
+
+            let imageUrl = null;
+            if (fileInput.files.length > 0) {
+                status.innerText = "Uploading photo to ImgBB...";
+                imageUrl = await uploadImageToImgBB(fileInput.files[0]);
+                if (!imageUrl) {
+                    status.style.color = "#ef4444";
+                    status.innerText = "Photo upload failed! Please check your internet or try another image.";
+                    btn.disabled = false;
+                    return;
+                }
+            }
+
+            status.innerText = "Saving to backend database...";
+            try {
+                const res = await fetch(SERVER + "/api/notices", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password: pass, text: text, image: imageUrl })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    status.style.color = "#16a34a";
+                    status.innerText = "✅ " + data.message;
+                    document.getElementById("notice-text").value = "";
+                    fileInput.value = "";
+                    loadNotices();
+                } else {
+                    status.style.color = "#ef4444";
+                    status.innerText = "❌ " + (data.message || "Failed to publish notice.");
+                }
+            } catch (e) {
+                status.style.color = "#ef4444";
+                status.innerText = "❌ Server network error. Please try again.";
+            }
+            btn.disabled = false;
+        }
+
+        async function deleteNotice(id) {
+            const pass = document.getElementById("admin-pass").value.trim();
+            if (!pass) {
+                alert("Please type the admin password at the top before deleting.");
+                return;
+            }
+            if (!confirm("Are you sure you want to permanently delete this notice?")) return;
+
+            try {
+                const res = await fetch(SERVER + "/api/notices/" + id, {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password: pass })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    loadNotices();
+                } else {
+                    alert(data.message || "Failed to delete notice.");
+                }
+            } catch (e) {
+                alert("Network error while deleting.");
+            }
+        }
+
+        // Initial load
+        loadNotices();
+    </script>
+</body>
+</html>
